@@ -1,0 +1,54 @@
+<query-editor-row query-ctrl="ctrl" class="generic-datasource-query-row" has-text-edit-mode="true">
+
+    <div ng-if="!ctrl.target.rawQuery">
+        <div class="gf-form-inline">
+            <div class="gf-form">
+                <label class="gf-form-label query-keyword width-7">FROM</label>
+                <metric-segment-model property="ctrl.target.namespace" get-options="ctrl.getNamespaces()" on-change="ctrl.onChangeInternal()"
+                    css-class="tight-form-item-xxlarge io-segment"></metric-segment-model>
+                <metric-segment-model property="ctrl.target.target" get-options="ctrl.getOptions()" on-change="ctrl.onChangeInternal()"
+                    css-class="tight-form-item-xxlarge io-segment"></metric-segment-model>
+            </div>
+        </div>
+
+        <div class="gf-form-inline">
+            <div class="gf-form">
+                <label class="gf-form-label query-keyword width-7">DEVICE</label>
+                <metric-segment-model property="ctrl.target.device_id" get-options="ctrl.getDevices()" on-change="ctrl.onChangeInternal()"
+                    css-class="tight-form-item-xxlarge io-segment"></metric-segment-model>
+            </div>
+        </div>
+
+        <div class="gf-form-inline">
+            <div class="gf-form">
+                <label class="gf-form-label query-keyword width-7">AGGREGATE</label>
+                <metric-segment-model property="ctrl.target.group_by_operator" get-options="ctrl.getOperators()" on-change="ctrl.onChangeInternal()"
+                    css-class="tight-form-item-medium io-segment"></metric-segment-model>
+                <label class="gf-form-label query-keyword query-keyword-large">TIME INTERVAL</label>
+                <metric-segment-model property="ctrl.target.interval" get-options="ctrl.intervalClicked()" on-change="ctrl.onChangeInternal()"
+                    css-class="tight-form-item-xmedium io-segment"></metric-segment-model>
+                <label class="gf-form-label query-keyword query-keyword-xlarge">ADDITIONAL GROUP BY</label>
+                <metric-segment-model property="ctrl.target.group_by_field" get-options="ctrl.getOptions()" on-change="ctrl.onChangeInternal()"
+                    css-class="tight-form-item-xxlarge io-segment"></metric-segment-model>
+            </div>
+        </div>
+
+        <div class="gf-form-inline">
+            <div class="gf-form">
+                <label class="gf-form-label query-keyword width-30">WHERE CLAUSES</label>
+            </div>
+        </div>
+
+        <div class="gf-form-inline" ng-repeat="row in ctrl.wheres">
+            <div class="gf-form io-where-row">
+                <label ng-if="$index > 0 && row.length > 1" class="gf-form-label query-keyword">AND</label>
+                <metric-segment ng-repeat="segment in row" segment="segment" get-options="ctrl.wheresClicked(segment, $parent.$index, $index)" on-change="ctrl.wheresUpdated(segment, $parent.$index, $index)"
+                    css-class="tight-form-item-xxlarge io-segment"></metric-segment>
+            </div>
+        </div>
+
+        <div class="gf-form-inline">
+            &nbsp;
+        </div>
+    </div>
+</query-editor-row>

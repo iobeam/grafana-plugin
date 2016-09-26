@@ -1,0 +1,33 @@
+{
+  "name": "iobeam",
+  "id": "grafana-iobeam",
+  "type": "datasource",
+
+  "staticRoot": ".",
+
+  "metrics": true,
+  "annotations": false,
+
+  "info": {
+    "description": "iobeam datasource",
+    "author": {
+      "name": "iobeam",
+      "url": "https://iobeam.com"
+    },
+    "logos": {
+      "small": "src/img/simpleJson_logo.svg",
+      "large": "src/img/simpleJson_logo.svg"
+    },
+    "links": [
+      {"name": "GitHub", "url": "https://github.com/grafana/simple-json-datasource"},
+      {"name": "MIT License", "url": "https://github.com/grafana/simple-json-datasource/blob/master/LICENSE"}
+    ],
+    "version": "1.0.0",
+    "updated": "2016-09-20"
+  },
+
+  "dependencies": {
+    "grafanaVersion": "3.x.x",
+    "plugins": [ ]
+  }
+}
