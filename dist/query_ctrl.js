@@ -3,7 +3,7 @@
 System.register(['lodash', 'app/plugins/sdk', './css/query-editor.css!', './constants'], function (_export, _context) {
     "use strict";
 
-    var _, QueryCtrl, DEFAULT_DEVICE, DEFAULT_GROUP_BY, DEFAULT_GROUP_BY_OP, DEFAULT_SELECT_FIELD, DEFAULT_SELECT_NS, DEFAULT_WHERE, _createClass, GenericDatasourceQueryCtrl;
+    var _, QueryCtrl, ALL_OPERATORS, DEFAULT_DEVICE, DEFAULT_GROUP_BY, DEFAULT_GROUP_BY_OP, DEFAULT_SELECT_FIELD, DEFAULT_SELECT_NS, DEFAULT_WHERE, _createClass, GenericDatasourceQueryCtrl;
 
     function _classCallCheck(instance, Constructor) {
         if (!(instance instanceof Constructor)) {
@@ -41,6 +41,7 @@ System.register(['lodash', 'app/plugins/sdk', './css/query-editor.css!', './cons
         }, function (_appPluginsSdk) {
             QueryCtrl = _appPluginsSdk.QueryCtrl;
         }, function (_cssQueryEditorCss) {}, function (_constants) {
+            ALL_OPERATORS = _constants.ALL_OPERATORS;
             DEFAULT_DEVICE = _constants.DEFAULT_DEVICE;
             DEFAULT_GROUP_BY = _constants.DEFAULT_GROUP_BY;
             DEFAULT_GROUP_BY_OP = _constants.DEFAULT_GROUP_BY_OP;
@@ -89,6 +90,9 @@ System.register(['lodash', 'app/plugins/sdk', './css/query-editor.css!', './cons
                     return _this;
                 }
 
+                /** Add a new where row to the UI, pushing down the plus button **/
+
+
                 _createClass(GenericDatasourceQueryCtrl, [{
                     key: 'addWhereRow',
                     value: function addWhereRow(rowIdx) {
@@ -107,16 +111,21 @@ System.register(['lodash', 'app/plugins/sdk', './css/query-editor.css!', './cons
                 }, {
                     key: 'wheresClicked',
                     value: function wheresClicked(segment, rowIdx, idx) {
+                        // Handle plus button clicks
                         if (segment.type === "plus-button") {
+                            // Only add a row if the previous one is non-empty clause
                             if (rowIdx === 0 || this.wheres[rowIdx - 1][0].value !== DEFAULT_WHERE) {
                                 this.addWhereRow(rowIdx);
                             } else {
+                                // Prevents user from 'editting' the button
                                 this.wheres[rowIdx][idx] = this.uiSegmentSrv.newPlusButton();
                             }
                         } else if (segment.type === "delete") {
+                            // Handle delete clicks
                             this.wheres.splice(rowIdx, 1);
+                            this.panelCtrl.refresh();
                         }
-                        return this.datasource.q.reject();
+                        return new Promise(function () {});
                     }
                 }, {
                     key: 'wheresUpdated',
@@ -148,7 +157,7 @@ System.register(['lodash', 'app/plugins/sdk', './css/query-editor.css!', './cons
                     value: function getOperators() {
                         var operators = ["mean", "max", "min", "sum", "count"];
                         return new Promise(function (resolve, reject) {
-                            resolve(_.map(operators, function (v) {
+                            resolve(ALL_OPERATORS.map(function (v) {
                                 return { text: v, value: v };
                             }));
                         }).then(this.uiSegmentSrv.transformToSegments(false));

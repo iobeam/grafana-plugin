@@ -1,7 +1,7 @@
-import _ from "lodash";
 import {QueryCtrl} from 'app/plugins/sdk';
 import './css/query-editor.css!'
 import {
+    ALL_OPERATORS,
     DEFAULT_DEVICE,
     DEFAULT_GROUP_BY,
     DEFAULT_GROUP_BY_OP,
@@ -28,6 +28,7 @@ export class GenericDatasourceQueryCtrl extends QueryCtrl {
         this.target.wheres = this.wheres;
     }
 
+    /** Add a new where row to the UI, pushing down the plus button **/
     addWhereRow(rowIdx) {
         const field = this.uiSegmentSrv.newSegment(DEFAULT_WHERE);
         field.cssClass = "io-segment io-where-clause";
@@ -43,22 +44,26 @@ export class GenericDatasourceQueryCtrl extends QueryCtrl {
     }
 
     wheresClicked(segment, rowIdx, idx) {
+        // Handle plus button clicks
         if (segment.type === "plus-button") {
+            // Only add a row if the previous one is non-empty clause
             if (rowIdx === 0 || this.wheres[rowIdx - 1][0].value !== DEFAULT_WHERE) {
                 this.addWhereRow(rowIdx);
-            } else {
+            } else {  // Prevents user from 'editting' the button
                 this.wheres[rowIdx][idx] = this.uiSegmentSrv.newPlusButton();
             }
-        } else if (segment.type === "delete") {
+        } else if (segment.type === "delete") {  // Handle delete clicks
             this.wheres.splice(rowIdx, 1);
+            this.panelCtrl.refresh();
         }
-        return this.datasource.q.reject();
+        return new Promise(() => {});
     }
 
     wheresUpdated(segment, rowIdx, idx) {
         this.panelCtrl.refresh();
     }
 
+    // No options for clicking on interval, just a text field.
     intervalClicked() {
         return new Promise(() => {});
     }
@@ -81,7 +86,7 @@ export class GenericDatasourceQueryCtrl extends QueryCtrl {
     getOperators() {
         const operators = ["mean", "max", "min", "sum", "count"];
         return new Promise((resolve, reject) => {
-            resolve(_.map(operators, (v) => {
+            resolve(ALL_OPERATORS.map((v) => {
                 return {text: v, value: v};
             }));
         }).then(this.uiSegmentSrv.transformToSegments(false));

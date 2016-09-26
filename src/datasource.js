@@ -11,20 +11,39 @@ import {
 const DATA_URL = "/v1/data/";
 const NAMESPACES_URL = "/v1/namespaces/";
 
-function makeDataUrl(ns, field = "all") {
+/** Build string representing iobeam /data endpoint **/
+function buildDataUrl(ns, field = "all") {
     return DATA_URL + ns + "/" + field;
 }
 
-function buildUrlQueryStr(params, startSep = "?") {
+/**
+ * Build string representing the query string from a map of params.
+ *
+ * params {object} - Key-value pairings to encode. If a value is a string,
+ *                  a single copy of the key is added with that value. If it is
+ *                  an array, multiple copies of that key are added for each
+ *                  value.
+ **/
+function buildUrlQueryStr(params) {
     const keys = Object.keys(params);
     let ret = "";
-    let sep = startSep;
+    let sep = "?";
     for (let i = 0; i < keys.length; i++) {
-        if (!keys[i]) {
+        const k = keys[i];
+
+        let vals;
+        if (params[k] instanceof Array) {
+            vals = params[k]
+        } else if (params[k]) {
+            vals = [params[k]];
+        } else {
             continue;
         }
-        ret += sep + encodeURIComponent(keys[i]) + "=" + encodeURIComponent(params[keys[i]]);
-        sep = "&"
+
+        for (let v of vals) {
+            ret += sep + encodeURIComponent(k) + "=" + encodeURIComponent(v);
+            sep = "&"
+        }
     }
 
     return ret;
@@ -54,6 +73,9 @@ function buildGroupByParam(t, interval) {
  * Used to find which element in fields corresponds to field, by looking
  * for field as a substring so it matches things like 'avg(field)' as well
  * 'field'.
+ *
+ * fields {array} - Array of fields to search in
+ * field {string} - Substring to search for
  **/
 function findFieldIdx(fields, field) {
     for (let i = 0; i < fields.length; i++) {
@@ -152,26 +174,32 @@ export class GenericDatasource {
                 device: t.device_id,
                 field: t.target
             };
+
             const queryParams = {
                 limit: query.maxDataPoints || 1000
             };
-            if (query.range) {
+
+            if (query.range) {  // create time clause
                 const from = query.range.from.toDate().getTime();
                 const to = query.range.to.toDate().getTime();
                 queryParams.time = from + "," + to;
             }
-            if (t.device_id !== ALL_DEVICES) {
-                queryParams.where = "eq(device_id," + t.device_id + ")";
-            }
-            Object.assign(queryParams, buildGroupByParam(t, (t.interval || query.interval)));
 
-            let queryStr = buildUrlQueryStr(queryParams);
+            // Set up all where clauses, incl device_id equality
+            queryParams.where = [];
+            if (t.device_id !== ALL_DEVICES) {
+                queryParams.where.push("eq(device_id," + t.device_id + ")");
+            }
             if (t.wheres && t.wheres.length > 0) {
                 for (let j = 0; j < t.wheres.length; j++) {
-                    queryStr += buildUrlQueryStr({where: t.wheres[j]}, "&");
+                    queryParams.where.push(t.wheres[j]);
                 }
             }
-            req.url = this.url + makeDataUrl(t.namespace, t.target) + queryStr;
+
+            // Group by query params
+            Object.assign(queryParams, buildGroupByParam(t, (t.interval || query.interval)));
+
+            req.url = this.url + buildDataUrl(t.namespace, t.target) + buildUrlQueryStr(queryParams);
             reqs.push(req);
         }
 
@@ -210,7 +238,7 @@ export class GenericDatasource {
     }
 
     // Required
-    // Used for testing datasource in datasource configuration pange
+    // Used for testing datasource in datasource configuration page
     testDatasource() {
         return this.backendSrv.datasourceRequest({
             url: this.url + "/v1/ping",
@@ -222,13 +250,11 @@ export class GenericDatasource {
         });
     }
 
-    /**
-     * Get the list of devices for a namespace
-     **/
+    /** Get the list of devices for a namespace **/
     deviceQuery(options) {
         const ns = options.namespace;
         return this.backendSrv.datasourceRequest({
-            url: this.url + makeDataUrl(ns, "device_id") + "?limit_by=device_id,1&limit=1000",
+            url: this.url + buildDataUrl(ns, "device_id") + "?limit_by=device_id,1&limit=1000",
             data: options,
             method: "GET",
             headers: this.headers
@@ -244,9 +270,10 @@ export class GenericDatasource {
         });
     }
 
+    /** Get the list of fields for a namespace **/
     fieldQuery(options) {
         return this.backendSrv.datasourceRequest({
-            url: this.url + makeDataUrl("input")+ "?limit=1",
+            url: this.url + buildDataUrl("input")+ "?limit=1",
             data: options,
             method: "GET",
             headers: this.headers
@@ -258,6 +285,7 @@ export class GenericDatasource {
         });
     }
 
+    /** Get the namespaces for a project **/
     namespaceQuery(options) {
         return this.backendSrv.datasourceRequest({
             url: this.url + NAMESPACES_URL,
@@ -273,7 +301,7 @@ export class GenericDatasource {
     }
 
     buildQueryParameters(options) {
-        //remove placeholder targets
+        // remove placeholder targets
         options.targets = _.filter(options.targets, target => {
             return target.target !== DEFAULT_SELECT_FIELD
                 && target.namespace !== DEFAULT_SELECT_NS

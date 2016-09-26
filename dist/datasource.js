@@ -11,24 +11,62 @@ System.register(["lodash", "./constants"], function (_export, _context) {
         }
     }
 
-    function makeDataUrl(ns) {
+    /** Build string representing iobeam /data endpoint **/
+    function buildDataUrl(ns) {
         var field = arguments.length <= 1 || arguments[1] === undefined ? "all" : arguments[1];
 
         return DATA_URL + ns + "/" + field;
     }
 
+    /**
+     * Build string representing the query string from a map of params.
+     *
+     * params {object} - Key-value pairings to encode. If a value is a string,
+     *                  a single copy of the key is added with that value. If it is
+     *                  an array, multiple copies of that key are added for each
+     *                  value.
+     **/
     function buildUrlQueryStr(params) {
-        var startSep = arguments.length <= 1 || arguments[1] === undefined ? "?" : arguments[1];
-
         var keys = Object.keys(params);
         var ret = "";
-        var sep = startSep;
+        var sep = "?";
         for (var i = 0; i < keys.length; i++) {
-            if (!keys[i]) {
+            var k = keys[i];
+
+            var vals = void 0;
+            if (params[k] instanceof Array) {
+                vals = params[k];
+            } else if (params[k]) {
+                vals = [params[k]];
+            } else {
                 continue;
             }
-            ret += sep + encodeURIComponent(keys[i]) + "=" + encodeURIComponent(params[keys[i]]);
-            sep = "&";
+
+            var _iteratorNormalCompletion = true;
+            var _didIteratorError = false;
+            var _iteratorError = undefined;
+
+            try {
+                for (var _iterator = vals[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                    var v = _step.value;
+
+                    ret += sep + encodeURIComponent(k) + "=" + encodeURIComponent(v);
+                    sep = "&";
+                }
+            } catch (err) {
+                _didIteratorError = true;
+                _iteratorError = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion && _iterator.return) {
+                        _iterator.return();
+                    }
+                } finally {
+                    if (_didIteratorError) {
+                        throw _iteratorError;
+                    }
+                }
+            }
         }
 
         return ret;
@@ -58,6 +96,9 @@ System.register(["lodash", "./constants"], function (_export, _context) {
      * Used to find which element in fields corresponds to field, by looking
      * for field as a substring so it matches things like 'avg(field)' as well
      * 'field'.
+     *
+     * fields {array} - Array of fields to search in
+     * field {string} - Substring to search for
      **/
     function findFieldIdx(fields, field) {
         for (var i = 0; i < fields.length; i++) {
@@ -207,26 +248,33 @@ System.register(["lodash", "./constants"], function (_export, _context) {
                                 device: t.device_id,
                                 field: t.target
                             };
+
                             var queryParams = {
                                 limit: query.maxDataPoints || 1000
                             };
+
                             if (query.range) {
+                                // create time clause
                                 var from = query.range.from.toDate().getTime();
                                 var to = query.range.to.toDate().getTime();
                                 queryParams.time = from + "," + to;
                             }
-                            if (t.device_id !== ALL_DEVICES) {
-                                queryParams.where = "eq(device_id," + t.device_id + ")";
-                            }
-                            Object.assign(queryParams, buildGroupByParam(t, t.interval || query.interval));
 
-                            var queryStr = buildUrlQueryStr(queryParams);
+                            // Set up all where clauses, incl device_id equality
+                            queryParams.where = [];
+                            if (t.device_id !== ALL_DEVICES) {
+                                queryParams.where.push("eq(device_id," + t.device_id + ")");
+                            }
                             if (t.wheres && t.wheres.length > 0) {
                                 for (var j = 0; j < t.wheres.length; j++) {
-                                    queryStr += buildUrlQueryStr({ where: t.wheres[j] }, "&");
+                                    queryParams.where.push(t.wheres[j]);
                                 }
                             }
-                            _req.url = this.url + makeDataUrl(t.namespace, t.target) + queryStr;
+
+                            // Group by query params
+                            Object.assign(queryParams, buildGroupByParam(t, t.interval || query.interval));
+
+                            _req.url = this.url + buildDataUrl(t.namespace, t.target) + buildUrlQueryStr(queryParams);
                             reqs.push(_req);
                         }
 
@@ -278,7 +326,7 @@ System.register(["lodash", "./constants"], function (_export, _context) {
                     value: function deviceQuery(options) {
                         var ns = options.namespace;
                         return this.backendSrv.datasourceRequest({
-                            url: this.url + makeDataUrl(ns, "device_id") + "?limit_by=device_id,1&limit=1000",
+                            url: this.url + buildDataUrl(ns, "device_id") + "?limit_by=device_id,1&limit=1000",
                             data: options,
                             method: "GET",
                             headers: this.headers
@@ -298,7 +346,7 @@ System.register(["lodash", "./constants"], function (_export, _context) {
                     key: "fieldQuery",
                     value: function fieldQuery(options) {
                         return this.backendSrv.datasourceRequest({
-                            url: this.url + makeDataUrl("input") + "?limit=1",
+                            url: this.url + buildDataUrl("input") + "?limit=1",
                             data: options,
                             method: "GET",
                             headers: this.headers
@@ -331,7 +379,7 @@ System.register(["lodash", "./constants"], function (_export, _context) {
                     value: function buildQueryParameters(options) {
                         var _this2 = this;
 
-                        //remove placeholder targets
+                        // remove placeholder targets
                         options.targets = _.filter(options.targets, function (target) {
                             return target.target !== DEFAULT_SELECT_FIELD && target.namespace !== DEFAULT_SELECT_NS && target.device_id !== DEFAULT_DEVICE;
                         });

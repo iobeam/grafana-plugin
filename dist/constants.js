@@ -3,7 +3,7 @@
 System.register([], function (_export, _context) {
   "use strict";
 
-  var DEFAULT_SELECT_FIELD, DEFAULT_SELECT_NS, DEFAULT_DEVICE, DEFAULT_WHERE, DEFAULT_GROUP_BY, DEFAULT_GROUP_BY_OP, ALL_DEVICES;
+  var DEFAULT_SELECT_FIELD, DEFAULT_SELECT_NS, DEFAULT_DEVICE, DEFAULT_WHERE, DEFAULT_GROUP_BY, DEFAULT_GROUP_BY_OP, ALL_DEVICES, ALL_OPERATORS;
   return {
     setters: [],
     execute: function () {
@@ -31,9 +31,13 @@ System.register([], function (_export, _context) {
 
       _export("DEFAULT_GROUP_BY_OP", DEFAULT_GROUP_BY_OP);
 
-      _export("ALL_DEVICES", ALL_DEVICES = "[ any ]");
+      _export("ALL_DEVICES", ALL_DEVICES = "[ all ]");
 
       _export("ALL_DEVICES", ALL_DEVICES);
+
+      _export("ALL_OPERATORS", ALL_OPERATORS = ["mean", "max", "min", "count", "sum"]);
+
+      _export("ALL_OPERATORS", ALL_OPERATORS);
     }
   };
 });
