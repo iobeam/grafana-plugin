@@ -51,7 +51,6 @@ export class GenericDatasourceQueryCtrl extends QueryCtrl {
         const button = this.uiSegmentSrv.newPlusButton();
         button.cssClass = "io-segment-no-left";
 
-        console.log(field);
         this.target.wheres[rowIdx] = [field, del];
         this.target.wheres.push([button]);
     }
@@ -89,7 +88,6 @@ export class GenericDatasourceQueryCtrl extends QueryCtrl {
     getGroupByOptions() {
         return this.datasource.fieldQuery(this.target)
             .then((results) => {
-                console.log(results);
                 return [{value: DEFAULT_GROUP_BY, text: DEFAULT_GROUP_BY}].concat(results);
             })
             .then(this.uiSegmentSrv.transformToSegments(false));

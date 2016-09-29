@@ -115,7 +115,6 @@ System.register(['app/plugins/sdk', './css/query-editor.css!', './constants'], f
                         var button = this.uiSegmentSrv.newPlusButton();
                         button.cssClass = "io-segment-no-left";
 
-                        console.log(field);
                         this.target.wheres[rowIdx] = [field, del];
                         this.target.wheres.push([button]);
                     }
@@ -157,7 +156,6 @@ System.register(['app/plugins/sdk', './css/query-editor.css!', './constants'], f
                     key: 'getGroupByOptions',
                     value: function getGroupByOptions() {
                         return this.datasource.fieldQuery(this.target).then(function (results) {
-                            console.log(results);
                             return [{ value: DEFAULT_GROUP_BY, text: DEFAULT_GROUP_BY }].concat(results);
                         }).then(this.uiSegmentSrv.transformToSegments(false));
                     }
