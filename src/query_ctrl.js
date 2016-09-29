@@ -24,14 +24,26 @@ export class GenericDatasourceQueryCtrl extends QueryCtrl {
         this.target.group_by_operator = this.target.group_by_operator || DEFAULT_GROUP_BY_OP;
         this.target.interval = this.target.interval || this.panelCtrl.interval;
 
-        this.wheres = this.wheres || [[this.uiSegmentSrv.newPlusButton()]];
-        this.target.wheres = this.wheres;
+        this.target.wheres = this.target.wheres || [[this.uiSegmentSrv.newPlusButton()]];
+        for (let i = 0; i < this.target.wheres.length; i++) {
+            for (let j = 0; j < this.target.wheres[i].length; j++) {
+                const temp = this.target.wheres[i][j];
+                if (temp.type === "clause") {
+                    const newClause = this.uiSegmentSrv.newSegment(temp.value);
+                    newClause.cssClass = temp.cssClass;
+                    newClause.type = temp.type;
+                    this.target.wheres[i][j] = newClause;
+                }
+            }
+        }
+
     }
 
     /** Add a new where row to the UI, pushing down the plus button **/
     addWhereRow(rowIdx) {
         const field = this.uiSegmentSrv.newSegment(DEFAULT_WHERE);
         field.cssClass = "io-segment io-where-clause";
+        field.type = "clause";
         const del = this.uiSegmentSrv.newSegment("");
         del.html = "<i class=\"fa fa-trash\"></i>";
         del.type = "delete";
@@ -39,21 +51,22 @@ export class GenericDatasourceQueryCtrl extends QueryCtrl {
         const button = this.uiSegmentSrv.newPlusButton();
         button.cssClass = "io-segment-no-left";
 
-        this.wheres[rowIdx] = [field, del];
-        this.wheres.push([button]);
+        console.log(field);
+        this.target.wheres[rowIdx] = [field, del];
+        this.target.wheres.push([button]);
     }
 
     wheresClicked(segment, rowIdx, idx) {
         // Handle plus button clicks
         if (segment.type === "plus-button") {
             // Only add a row if the previous one is non-empty clause
-            if (rowIdx === 0 || this.wheres[rowIdx - 1][0].value !== DEFAULT_WHERE) {
+            if (rowIdx === 0 || this.target.wheres[rowIdx - 1][0].value !== DEFAULT_WHERE) {
                 this.addWhereRow(rowIdx);
             } else {  // Prevents user from 'editting' the button
-                this.wheres[rowIdx][idx] = this.uiSegmentSrv.newPlusButton();
+                this.target.wheres[rowIdx][idx] = this.uiSegmentSrv.newPlusButton();
             }
         } else if (segment.type === "delete") {  // Handle delete clicks
-            this.wheres.splice(rowIdx, 1);
+            this.target.wheres.splice(rowIdx, 1);
             this.panelCtrl.refresh();
         }
         return new Promise(() => {});
@@ -70,6 +83,15 @@ export class GenericDatasourceQueryCtrl extends QueryCtrl {
 
     getOptions() {
         return this.datasource.fieldQuery(this.target)
+            .then(this.uiSegmentSrv.transformToSegments(false));
+    }
+
+    getGroupByOptions() {
+        return this.datasource.fieldQuery(this.target)
+            .then((results) => {
+                console.log(results);
+                return [{value: DEFAULT_GROUP_BY, text: DEFAULT_GROUP_BY}].concat(results);
+            })
             .then(this.uiSegmentSrv.transformToSegments(false));
     }
 

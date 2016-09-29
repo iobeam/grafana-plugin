@@ -1,9 +1,9 @@
 'use strict';
 
-System.register(['lodash', 'app/plugins/sdk', './css/query-editor.css!', './constants'], function (_export, _context) {
+System.register(['app/plugins/sdk', './css/query-editor.css!', './constants'], function (_export, _context) {
     "use strict";
 
-    var _, QueryCtrl, ALL_OPERATORS, DEFAULT_DEVICE, DEFAULT_GROUP_BY, DEFAULT_GROUP_BY_OP, DEFAULT_SELECT_FIELD, DEFAULT_SELECT_NS, DEFAULT_WHERE, _createClass, GenericDatasourceQueryCtrl;
+    var QueryCtrl, ALL_OPERATORS, DEFAULT_DEVICE, DEFAULT_GROUP_BY, DEFAULT_GROUP_BY_OP, DEFAULT_SELECT_FIELD, DEFAULT_SELECT_NS, DEFAULT_WHERE, _createClass, GenericDatasourceQueryCtrl;
 
     function _classCallCheck(instance, Constructor) {
         if (!(instance instanceof Constructor)) {
@@ -36,9 +36,7 @@ System.register(['lodash', 'app/plugins/sdk', './css/query-editor.css!', './cons
     }
 
     return {
-        setters: [function (_lodash) {
-            _ = _lodash.default;
-        }, function (_appPluginsSdk) {
+        setters: [function (_appPluginsSdk) {
             QueryCtrl = _appPluginsSdk.QueryCtrl;
         }, function (_cssQueryEditorCss) {}, function (_constants) {
             ALL_OPERATORS = _constants.ALL_OPERATORS;
@@ -85,8 +83,19 @@ System.register(['lodash', 'app/plugins/sdk', './css/query-editor.css!', './cons
                     _this.target.group_by_operator = _this.target.group_by_operator || DEFAULT_GROUP_BY_OP;
                     _this.target.interval = _this.target.interval || _this.panelCtrl.interval;
 
-                    _this.wheres = _this.wheres || [[_this.uiSegmentSrv.newPlusButton()]];
-                    _this.target.wheres = _this.wheres;
+                    _this.target.wheres = _this.target.wheres || [[_this.uiSegmentSrv.newPlusButton()]];
+                    for (var i = 0; i < _this.target.wheres.length; i++) {
+                        for (var j = 0; j < _this.target.wheres[i].length; j++) {
+                            var temp = _this.target.wheres[i][j];
+                            if (temp.type === "clause") {
+                                var newClause = _this.uiSegmentSrv.newSegment(temp.value);
+                                newClause.cssClass = temp.cssClass;
+                                newClause.type = temp.type;
+                                _this.target.wheres[i][j] = newClause;
+                            }
+                        }
+                    }
+
                     return _this;
                 }
 
@@ -98,6 +107,7 @@ System.register(['lodash', 'app/plugins/sdk', './css/query-editor.css!', './cons
                     value: function addWhereRow(rowIdx) {
                         var field = this.uiSegmentSrv.newSegment(DEFAULT_WHERE);
                         field.cssClass = "io-segment io-where-clause";
+                        field.type = "clause";
                         var del = this.uiSegmentSrv.newSegment("");
                         del.html = "<i class=\"fa fa-trash\"></i>";
                         del.type = "delete";
@@ -105,8 +115,9 @@ System.register(['lodash', 'app/plugins/sdk', './css/query-editor.css!', './cons
                         var button = this.uiSegmentSrv.newPlusButton();
                         button.cssClass = "io-segment-no-left";
 
-                        this.wheres[rowIdx] = [field, del];
-                        this.wheres.push([button]);
+                        console.log(field);
+                        this.target.wheres[rowIdx] = [field, del];
+                        this.target.wheres.push([button]);
                     }
                 }, {
                     key: 'wheresClicked',
@@ -114,15 +125,15 @@ System.register(['lodash', 'app/plugins/sdk', './css/query-editor.css!', './cons
                         // Handle plus button clicks
                         if (segment.type === "plus-button") {
                             // Only add a row if the previous one is non-empty clause
-                            if (rowIdx === 0 || this.wheres[rowIdx - 1][0].value !== DEFAULT_WHERE) {
+                            if (rowIdx === 0 || this.target.wheres[rowIdx - 1][0].value !== DEFAULT_WHERE) {
                                 this.addWhereRow(rowIdx);
                             } else {
                                 // Prevents user from 'editting' the button
-                                this.wheres[rowIdx][idx] = this.uiSegmentSrv.newPlusButton();
+                                this.target.wheres[rowIdx][idx] = this.uiSegmentSrv.newPlusButton();
                             }
                         } else if (segment.type === "delete") {
                             // Handle delete clicks
-                            this.wheres.splice(rowIdx, 1);
+                            this.target.wheres.splice(rowIdx, 1);
                             this.panelCtrl.refresh();
                         }
                         return new Promise(function () {});
@@ -141,6 +152,14 @@ System.register(['lodash', 'app/plugins/sdk', './css/query-editor.css!', './cons
                     key: 'getOptions',
                     value: function getOptions() {
                         return this.datasource.fieldQuery(this.target).then(this.uiSegmentSrv.transformToSegments(false));
+                    }
+                }, {
+                    key: 'getGroupByOptions',
+                    value: function getGroupByOptions() {
+                        return this.datasource.fieldQuery(this.target).then(function (results) {
+                            console.log(results);
+                            return [{ value: DEFAULT_GROUP_BY, text: DEFAULT_GROUP_BY }].concat(results);
+                        }).then(this.uiSegmentSrv.transformToSegments(false));
                     }
                 }, {
                     key: 'getNamespaces',

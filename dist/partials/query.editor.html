@@ -28,7 +28,7 @@
                 <metric-segment-model property="ctrl.target.interval" get-options="ctrl.intervalClicked()" on-change="ctrl.onChangeInternal()"
                     css-class="tight-form-item-xmedium io-segment"></metric-segment-model>
                 <label class="gf-form-label query-keyword query-keyword-xlarge">ADDITIONAL GROUP BY</label>
-                <metric-segment-model property="ctrl.target.group_by_field" get-options="ctrl.getOptions()" on-change="ctrl.onChangeInternal()"
+                <metric-segment-model property="ctrl.target.group_by_field" get-options="ctrl.getGroupByOptions()" on-change="ctrl.onChangeInternal()"
                     css-class="tight-form-item-xxlarge io-segment"></metric-segment-model>
             </div>
         </div>
@@ -39,7 +39,7 @@
             </div>
         </div>
 
-        <div class="gf-form-inline" ng-repeat="row in ctrl.wheres">
+        <div class="gf-form-inline" ng-repeat="row in ctrl.target.wheres">
             <div class="gf-form io-where-row">
                 <label ng-if="$index > 0 && row.length > 1" class="gf-form-label query-keyword">AND</label>
                 <metric-segment ng-repeat="segment in row" segment="segment" get-options="ctrl.wheresClicked(segment, $parent.$index, $index)" on-change="ctrl.wheresUpdated(segment, $parent.$index, $index)"
