@@ -313,7 +313,7 @@ export class GenericDatasource {
             if (target.wheres) {
                 for (let i = 0; i < target.wheres.length; i++) {
                     const row = target.wheres[i];
-                    if (row.length > 1 && row[0].value !== DEFAULT_WHERE) {
+                    if (row.length > 1 && row[0].value !== "") {
                         wheres.push(row[0].value);
                     }
                 }

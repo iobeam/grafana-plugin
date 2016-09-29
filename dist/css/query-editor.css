@@ -38,5 +38,7 @@
 
 .io-where-clause {
   min-width: 250px;
+  background-color: #292929;
   height: 100%;
+  padding-left: 12px;
 }

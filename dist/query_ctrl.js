@@ -105,7 +105,7 @@ System.register(['app/plugins/sdk', './css/query-editor.css!', './constants'], f
                 _createClass(GenericDatasourceQueryCtrl, [{
                     key: 'addWhereRow',
                     value: function addWhereRow(rowIdx) {
-                        var field = this.uiSegmentSrv.newSegment(DEFAULT_WHERE);
+                        var field = this.uiSegmentSrv.newSegment("");
                         field.cssClass = "io-segment io-where-clause";
                         field.type = "clause";
                         var del = this.uiSegmentSrv.newSegment("");
@@ -124,7 +124,7 @@ System.register(['app/plugins/sdk', './css/query-editor.css!', './constants'], f
                         // Handle plus button clicks
                         if (segment.type === "plus-button") {
                             // Only add a row if the previous one is non-empty clause
-                            if (rowIdx === 0 || this.target.wheres[rowIdx - 1][0].value !== DEFAULT_WHERE) {
+                            if (rowIdx === 0 || this.target.wheres[rowIdx - 1][0].value !== "") {
                                 this.addWhereRow(rowIdx);
                             } else {
                                 // Prevents user from 'editting' the button
@@ -141,6 +141,14 @@ System.register(['app/plugins/sdk', './css/query-editor.css!', './constants'], f
                     key: 'wheresUpdated',
                     value: function wheresUpdated(segment, rowIdx, idx) {
                         this.panelCtrl.refresh();
+                    }
+                }, {
+                    key: 'wheresEntered',
+                    value: function wheresEntered(event, rowIdx, idx) {
+                        if (event && event.target) {
+                            this.target.wheres[rowIdx][idx].value = event.target.value;
+                            this.panelCtrl.refresh();
+                        }
                     }
                 }, {
                     key: 'intervalClicked',
@@ -173,7 +181,7 @@ System.register(['app/plugins/sdk', './css/query-editor.css!', './constants'], f
                     key: 'getOperators',
                     value: function getOperators() {
                         var operators = ["mean", "max", "min", "sum", "count"];
-                        return new Promise(function (resolve, reject) {
+                        return new Promise(function (resolve) {
                             resolve(ALL_OPERATORS.map(function (v) {
                                 return { text: v, value: v };
                             }));

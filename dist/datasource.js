@@ -389,7 +389,7 @@ System.register(["lodash", "./constants"], function (_export, _context) {
                             if (target.wheres) {
                                 for (var i = 0; i < target.wheres.length; i++) {
                                     var row = target.wheres[i];
-                                    if (row.length > 1 && row[0].value !== DEFAULT_WHERE) {
+                                    if (row.length > 1 && row[0].value !== "") {
                                         wheres.push(row[0].value);
                                     }
                                 }

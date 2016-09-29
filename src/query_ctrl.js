@@ -41,7 +41,7 @@ export class GenericDatasourceQueryCtrl extends QueryCtrl {
 
     /** Add a new where row to the UI, pushing down the plus button **/
     addWhereRow(rowIdx) {
-        const field = this.uiSegmentSrv.newSegment(DEFAULT_WHERE);
+        const field = this.uiSegmentSrv.newSegment("");
         field.cssClass = "io-segment io-where-clause";
         field.type = "clause";
         const del = this.uiSegmentSrv.newSegment("");
@@ -55,11 +55,12 @@ export class GenericDatasourceQueryCtrl extends QueryCtrl {
         this.target.wheres.push([button]);
     }
 
+    // Only handles clicks for plus buttons and delete buttons
     wheresClicked(segment, rowIdx, idx) {
         // Handle plus button clicks
         if (segment.type === "plus-button") {
             // Only add a row if the previous one is non-empty clause
-            if (rowIdx === 0 || this.target.wheres[rowIdx - 1][0].value !== DEFAULT_WHERE) {
+            if (rowIdx === 0 || this.target.wheres[rowIdx - 1][0].value !== "") {
                 this.addWhereRow(rowIdx);
             } else {  // Prevents user from 'editting' the button
                 this.target.wheres[rowIdx][idx] = this.uiSegmentSrv.newPlusButton();
@@ -73,6 +74,14 @@ export class GenericDatasourceQueryCtrl extends QueryCtrl {
 
     wheresUpdated(segment, rowIdx, idx) {
         this.panelCtrl.refresh();
+    }
+
+    // Handles when a clause is actually entered
+    wheresEntered(event, rowIdx, idx) {
+        if (event && event.target) {
+            this.target.wheres[rowIdx][idx].value = event.target.value;
+            this.panelCtrl.refresh();
+        }
     }
 
     // No options for clicking on interval, just a text field.
@@ -105,7 +114,7 @@ export class GenericDatasourceQueryCtrl extends QueryCtrl {
 
     getOperators() {
         const operators = ["mean", "max", "min", "sum", "count"];
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             resolve(ALL_OPERATORS.map((v) => {
                 return {text: v, value: v};
             }));
