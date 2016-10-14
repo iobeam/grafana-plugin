@@ -345,8 +345,11 @@ System.register(["lodash", "./constants"], function (_export, _context) {
                 }, {
                     key: "fieldQuery",
                     value: function fieldQuery(options) {
+                        if (!options.namespace || options.namespace === DEFAULT_SELECT_NS) {
+                            return this.q.when([]);
+                        }
                         return this.backendSrv.datasourceRequest({
-                            url: this.url + buildDataUrl("input") + "?limit=1",
+                            url: this.url + buildDataUrl(options.namespace) + "?limit=1",
                             data: options,
                             method: "GET",
                             headers: this.headers
