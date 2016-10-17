@@ -23,6 +23,8 @@ export class GenericDatasourceQueryCtrl extends QueryCtrl {
         this.target.group_by_field = this.target.group_by_field || DEFAULT_GROUP_BY;
         this.target.group_by_operator = this.target.group_by_operator || DEFAULT_GROUP_BY_OP;
         this.target.interval = this.target.interval || this.panelCtrl.interval;
+        this.target.limit_by_field = this.target.limit_by_field || DEFAULT_GROUP_BY;
+        this.target.limit_by_count = this.target.limit_by_count || 1;
 
         this.target.wheres = this.target.wheres || [[this.uiSegmentSrv.newPlusButton()]];
         for (let i = 0; i < this.target.wheres.length; i++) {
@@ -84,6 +86,11 @@ export class GenericDatasourceQueryCtrl extends QueryCtrl {
         }
     }
 
+    limitCount(event) {
+        this.target.limit_by_count = event.target.value;
+        this.panelCtrl.refresh();
+    }
+
     // No options for clicking on interval, just a text field.
     intervalClicked() {
         return new Promise(() => {});
@@ -99,6 +106,11 @@ export class GenericDatasourceQueryCtrl extends QueryCtrl {
             .then((results) => {
                 return [{value: DEFAULT_GROUP_BY, text: DEFAULT_GROUP_BY}].concat(results);
             })
+            .then(this.uiSegmentSrv.transformToSegments(false));
+    }
+
+    getLimitByOptions() {
+        return this.datasource.limitByFieldsQuery(this.target)
             .then(this.uiSegmentSrv.transformToSegments(false));
     }
 

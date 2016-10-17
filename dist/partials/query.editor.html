@@ -35,6 +35,17 @@
 
         <div class="gf-form-inline">
             <div class="gf-form">
+                <label class="gf-form-label query-keyword width-7">LIMIT BY</label>
+                <metric-segment-model property="ctrl.target.limit_by_field" get-options="ctrl.getLimitByOptions()" on-change="ctrl.onChangeInternal()"
+                    css-class="tight-form-item-medium io-segment"></metric-segment-model>
+                <label class="gf-form-label query-keyword width-7">LIMIT #</label>
+                <input type="text" ng-value="ctrl.target.limit_by_count" placeholder="1" class="io-segment io-limit-clause" ng-blur="ctrl.limitCount($event)"></input>
+
+            </div>
+        </div>
+
+        <div class="gf-form-inline">
+            <div class="gf-form">
                 <label class="gf-form-label query-keyword width-30">WHERE CLAUSES</label>
             </div>
         </div>

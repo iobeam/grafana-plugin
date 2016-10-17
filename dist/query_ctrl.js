@@ -82,6 +82,8 @@ System.register(['app/plugins/sdk', './css/query-editor.css!', './constants'], f
                     _this.target.group_by_field = _this.target.group_by_field || DEFAULT_GROUP_BY;
                     _this.target.group_by_operator = _this.target.group_by_operator || DEFAULT_GROUP_BY_OP;
                     _this.target.interval = _this.target.interval || _this.panelCtrl.interval;
+                    _this.target.limit_by_field = _this.target.limit_by_field || DEFAULT_GROUP_BY;
+                    _this.target.limit_by_count = _this.target.limit_by_count || 1;
 
                     _this.target.wheres = _this.target.wheres || [[_this.uiSegmentSrv.newPlusButton()]];
                     for (var i = 0; i < _this.target.wheres.length; i++) {
@@ -151,6 +153,12 @@ System.register(['app/plugins/sdk', './css/query-editor.css!', './constants'], f
                         }
                     }
                 }, {
+                    key: 'limitCount',
+                    value: function limitCount(event) {
+                        this.target.limit_by_count = event.target.value;
+                        this.panelCtrl.refresh();
+                    }
+                }, {
                     key: 'intervalClicked',
                     value: function intervalClicked() {
                         return new Promise(function () {});
@@ -166,6 +174,11 @@ System.register(['app/plugins/sdk', './css/query-editor.css!', './constants'], f
                         return this.datasource.fieldQuery(this.target).then(function (results) {
                             return [{ value: DEFAULT_GROUP_BY, text: DEFAULT_GROUP_BY }].concat(results);
                         }).then(this.uiSegmentSrv.transformToSegments(false));
+                    }
+                }, {
+                    key: 'getLimitByOptions',
+                    value: function getLimitByOptions() {
+                        return this.datasource.limitByFieldsQuery(this.target).then(this.uiSegmentSrv.transformToSegments(false));
                     }
                 }, {
                     key: 'getNamespaces',

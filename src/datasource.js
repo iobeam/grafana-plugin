@@ -69,6 +69,18 @@ function buildGroupByParam(t, interval) {
     return ret;
 }
 
+function buildLimitByParam(t) {
+    if (t.limit_by) {
+        if (t.limit_by.field !== DEFAULT_GROUP_BY) {
+            const {limit, field} = t.limit_by;
+            return {
+                "limit_by": field + "," + limit
+            };
+        }
+    }
+    return {};
+}
+
 /**
  * Used to find which element in fields corresponds to field, by looking
  * for field as a substring so it matches things like 'avg(field)' as well
@@ -196,8 +208,9 @@ export class GenericDatasource {
                 }
             }
 
-            // Group by query params
+            // Group by & limit by query params
             Object.assign(queryParams, buildGroupByParam(t, (t.interval || query.interval)));
+            Object.assign(queryParams, buildLimitByParam(t));
 
             req.url = this.url + buildDataUrl(t.namespace, t.target) + buildUrlQueryStr(queryParams);
             reqs.push(req);
@@ -273,7 +286,7 @@ export class GenericDatasource {
     /** Get the list of fields for a namespace **/
     fieldQuery(options) {
         if (!options.namespace || options.namespace === DEFAULT_SELECT_NS) {
-            return this.q.when([]);    
+            return this.q.when([]);
         }
         return this.backendSrv.datasourceRequest({
             url: this.url + buildDataUrl(options.namespace)+ "?limit=1",
@@ -303,6 +316,32 @@ export class GenericDatasource {
         });
     }
 
+    limitByFieldsQuery(options) {
+        if (!options.namespace || options.namespace === DEFAULT_SELECT_NS) {
+            return this.q.when([]);
+        }
+        return this.backendSrv.datasourceRequest({
+            url: this.url + NAMESPACES_URL + buildUrlQueryStr({namespace_name: options.namespace}),
+            data: options,
+            method: "GET",
+            headers: this.headers
+        }).then(result => {
+            const {namespaces} = result.data;
+            const {labels} = namespaces[0];
+            const temp = _.filter(Object.keys(labels), (label) => {
+                return label.indexOf(":distinct") !== -1;
+            });
+            return _.map(temp, (label) => {
+                const idx = label.indexOf(":distinct");
+                const val = label.substring(0, idx);
+                return {text: val, value: val};
+            });
+        });
+    }
+
+    metricFindQuery() {
+    }
+
     buildQueryParameters(options) {
         // remove placeholder targets
         options.targets = _.filter(options.targets, target => {
@@ -327,11 +366,17 @@ export class GenericDatasource {
                 operator: target.group_by_operator
             };
 
+            const limit_by = !target.limit_by_field ? null : {
+                field: target.limit_by_field,
+                limit: target.limit_by_count
+            };
+
             return {
                 target: this.templateSrv.replace(target.target),
                 namespace: this.templateSrv.replace(target.namespace),
                 device_id: this.templateSrv.replace(target.device_id),
                 group_by: group_by,
+                limit_by: limit_by,
                 wheres: wheres,
                 interval: target.interval,
                 refId: target.refId,

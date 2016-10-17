@@ -42,3 +42,10 @@
   height: 100%;
   padding-left: 12px;
 }
+
+.io-limit-clause {
+  min-width: 40px;
+  background-color: #292929;
+  height: 100%;
+  padding-left: 12px;
+}

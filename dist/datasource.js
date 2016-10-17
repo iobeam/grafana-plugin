@@ -92,6 +92,21 @@ System.register(["lodash", "./constants"], function (_export, _context) {
         return ret;
     }
 
+    function buildLimitByParam(t) {
+        if (t.limit_by) {
+            if (t.limit_by.field !== DEFAULT_GROUP_BY) {
+                var _t$limit_by = t.limit_by;
+                var limit = _t$limit_by.limit;
+                var field = _t$limit_by.field;
+
+                return {
+                    "limit_by": field + "," + limit
+                };
+            }
+        }
+        return {};
+    }
+
     /**
      * Used to find which element in fields corresponds to field, by looking
      * for field as a substring so it matches things like 'avg(field)' as well
@@ -271,8 +286,9 @@ System.register(["lodash", "./constants"], function (_export, _context) {
                                 }
                             }
 
-                            // Group by query params
+                            // Group by & limit by query params
                             Object.assign(queryParams, buildGroupByParam(t, t.interval || query.interval));
+                            Object.assign(queryParams, buildLimitByParam(t));
 
                             _req.url = this.url + buildDataUrl(t.namespace, t.target) + buildUrlQueryStr(queryParams);
                             reqs.push(_req);
@@ -378,6 +394,34 @@ System.register(["lodash", "./constants"], function (_export, _context) {
                         });
                     }
                 }, {
+                    key: "limitByFieldsQuery",
+                    value: function limitByFieldsQuery(options) {
+                        if (!options.namespace || options.namespace === DEFAULT_SELECT_NS) {
+                            return this.q.when([]);
+                        }
+                        return this.backendSrv.datasourceRequest({
+                            url: this.url + NAMESPACES_URL + buildUrlQueryStr({ namespace_name: options.namespace }),
+                            data: options,
+                            method: "GET",
+                            headers: this.headers
+                        }).then(function (result) {
+                            var namespaces = result.data.namespaces;
+                            var labels = namespaces[0].labels;
+
+                            var temp = _.filter(Object.keys(labels), function (label) {
+                                return label.indexOf(":distinct") !== -1;
+                            });
+                            return _.map(temp, function (label) {
+                                var idx = label.indexOf(":distinct");
+                                var val = label.substring(0, idx);
+                                return { text: val, value: val };
+                            });
+                        });
+                    }
+                }, {
+                    key: "metricFindQuery",
+                    value: function metricFindQuery() {}
+                }, {
                     key: "buildQueryParameters",
                     value: function buildQueryParameters(options) {
                         var _this2 = this;
@@ -403,11 +447,17 @@ System.register(["lodash", "./constants"], function (_export, _context) {
                                 operator: target.group_by_operator
                             };
 
+                            var limit_by = !target.limit_by_field ? null : {
+                                field: target.limit_by_field,
+                                limit: target.limit_by_count
+                            };
+
                             return {
                                 target: _this2.templateSrv.replace(target.target),
                                 namespace: _this2.templateSrv.replace(target.namespace),
                                 device_id: _this2.templateSrv.replace(target.device_id),
                                 group_by: group_by,
+                                limit_by: limit_by,
                                 wheres: wheres,
                                 interval: target.interval,
                                 refId: target.refId,
