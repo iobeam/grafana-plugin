@@ -111,6 +111,9 @@ export class GenericDatasourceQueryCtrl extends QueryCtrl {
 
     getLimitByOptions() {
         return this.datasource.limitByFieldsQuery(this.target)
+            .then((results) => {
+                return [{value: DEFAULT_GROUP_BY, text: DEFAULT_GROUP_BY}].concat(results);
+            })
             .then(this.uiSegmentSrv.transformToSegments(false));
     }
 

@@ -178,7 +178,9 @@ System.register(['app/plugins/sdk', './css/query-editor.css!', './constants'], f
                 }, {
                     key: 'getLimitByOptions',
                     value: function getLimitByOptions() {
-                        return this.datasource.limitByFieldsQuery(this.target).then(this.uiSegmentSrv.transformToSegments(false));
+                        return this.datasource.limitByFieldsQuery(this.target).then(function (results) {
+                            return [{ value: DEFAULT_GROUP_BY, text: DEFAULT_GROUP_BY }].concat(results);
+                        }).then(this.uiSegmentSrv.transformToSegments(false));
                     }
                 }, {
                     key: 'getNamespaces',
