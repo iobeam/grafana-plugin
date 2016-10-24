@@ -3,7 +3,7 @@
 System.register(['app/plugins/sdk', './css/query-editor.css!', './constants'], function (_export, _context) {
     "use strict";
 
-    var QueryCtrl, ALL_OPERATORS, DEFAULT_DEVICE, DEFAULT_GROUP_BY, DEFAULT_GROUP_BY_OP, DEFAULT_SELECT_FIELD, DEFAULT_SELECT_NS, DEFAULT_WHERE, _createClass, GenericDatasourceQueryCtrl;
+    var QueryCtrl, ALL_OPERATORS, DEFAULT_DEVICE, DEFAULT_GROUP_BY_OP, DEFAULT_SELECT_FIELD, DEFAULT_SELECT_NS, DEFAULT_WHERE, NONE, _createClass, GenericDatasourceQueryCtrl;
 
     function _classCallCheck(instance, Constructor) {
         if (!(instance instanceof Constructor)) {
@@ -41,11 +41,11 @@ System.register(['app/plugins/sdk', './css/query-editor.css!', './constants'], f
         }, function (_cssQueryEditorCss) {}, function (_constants) {
             ALL_OPERATORS = _constants.ALL_OPERATORS;
             DEFAULT_DEVICE = _constants.DEFAULT_DEVICE;
-            DEFAULT_GROUP_BY = _constants.DEFAULT_GROUP_BY;
             DEFAULT_GROUP_BY_OP = _constants.DEFAULT_GROUP_BY_OP;
             DEFAULT_SELECT_FIELD = _constants.DEFAULT_SELECT_FIELD;
             DEFAULT_SELECT_NS = _constants.DEFAULT_SELECT_NS;
             DEFAULT_WHERE = _constants.DEFAULT_WHERE;
+            NONE = _constants.NONE;
         }],
         execute: function () {
             _createClass = function () {
@@ -79,10 +79,10 @@ System.register(['app/plugins/sdk', './css/query-editor.css!', './constants'], f
                     _this.target.target = _this.target.target || DEFAULT_SELECT_FIELD;
                     _this.target.namespace = _this.target.namespace || DEFAULT_SELECT_NS;
                     _this.target.device_id = _this.target.device_id || DEFAULT_DEVICE;
-                    _this.target.group_by_field = _this.target.group_by_field || DEFAULT_GROUP_BY;
+                    _this.target.group_by_field = _this.target.group_by_field || NONE;
                     _this.target.group_by_operator = _this.target.group_by_operator || DEFAULT_GROUP_BY_OP;
                     _this.target.interval = _this.target.interval || _this.panelCtrl.interval;
-                    _this.target.limit_by_field = _this.target.limit_by_field || DEFAULT_GROUP_BY;
+                    _this.target.limit_by_field = _this.target.limit_by_field || NONE;
                     _this.target.limit_by_count = _this.target.limit_by_count || 1;
 
                     _this.target.wheres = _this.target.wheres || [[_this.uiSegmentSrv.newPlusButton()]];
@@ -172,14 +172,14 @@ System.register(['app/plugins/sdk', './css/query-editor.css!', './constants'], f
                     key: 'getGroupByOptions',
                     value: function getGroupByOptions() {
                         return this.datasource.fieldQuery(this.target).then(function (results) {
-                            return [{ value: DEFAULT_GROUP_BY, text: DEFAULT_GROUP_BY }].concat(results);
+                            return [{ value: NONE, text: NONE }].concat(results);
                         }).then(this.uiSegmentSrv.transformToSegments(false));
                     }
                 }, {
                     key: 'getLimitByOptions',
                     value: function getLimitByOptions() {
                         return this.datasource.limitByFieldsQuery(this.target).then(function (results) {
-                            return [{ value: DEFAULT_GROUP_BY, text: DEFAULT_GROUP_BY }].concat(results);
+                            return [{ value: NONE, text: NONE }].concat(results);
                         }).then(this.uiSegmentSrv.transformToSegments(false));
                     }
                 }, {
@@ -195,9 +195,9 @@ System.register(['app/plugins/sdk', './css/query-editor.css!', './constants'], f
                 }, {
                     key: 'getOperators',
                     value: function getOperators() {
-                        var operators = ["mean", "max", "min", "sum", "count"];
+                        var operators = [NONE].concat(ALL_OPERATORS);
                         return new Promise(function (resolve) {
-                            resolve(ALL_OPERATORS.map(function (v) {
+                            resolve(operators.map(function (v) {
                                 return { text: v, value: v };
                             }));
                         }).then(this.uiSegmentSrv.transformToSegments(false));

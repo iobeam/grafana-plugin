@@ -2,10 +2,10 @@ import _ from "lodash";
 import {
     ALL_DEVICES,
     DEFAULT_DEVICE,
-    DEFAULT_GROUP_BY,
     DEFAULT_SELECT_FIELD,
     DEFAULT_SELECT_NS,
-    DEFAULT_WHERE
+    DEFAULT_WHERE,
+    NONE
 } from "./constants";
 
 const DATA_URL = "/v1/data/";
@@ -51,19 +51,18 @@ function buildUrlQueryStr(params) {
 
 function buildGroupByParam(t, interval) {
     const ret = {};
-    if (interval) {
-        ret.group_by = "time(" + interval + ")";
-        ret.operator = "mean";
-    }
-
     if (t.group_by) {
-        if (t.group_by.field !== DEFAULT_GROUP_BY) {
+        if (t.group_by.operator && interval && t.group_by.operator !== NONE) {
+            ret.group_by = "time(" + interval + ")";
+            ret.operator = t.group_by.operator;
+        }
+
+        if (t.group_by.field && t.group_by.field !== NONE) {
             if (ret.group_by) {
                 ret.group_by += ",";
             }
             ret.group_by += t.group_by.field;
         }
-        ret.operator = t.group_by.operator;
     }
 
     return ret;
@@ -71,7 +70,7 @@ function buildGroupByParam(t, interval) {
 
 function buildLimitByParam(t) {
     if (t.limit_by) {
-        if (t.limit_by.field !== DEFAULT_GROUP_BY) {
+        if (t.limit_by.field !== NONE) {
             const {limit, field} = t.limit_by;
             return {
                 "limit_by": field + "," + limit
@@ -361,10 +360,13 @@ export class GenericDatasource {
                 }
             }
 
-            const group_by = !target.group_by_field ? null : {
-                field: target.group_by_field,
-                operator: target.group_by_operator
-            };
+            const group_by = {};
+            if (target.group_by_operator) {
+                group_by.operator = target.group_by_operator;
+            }
+            if (target.group_by_field) {
+                group_by.field = target.group_by_field;
+            }
 
             const limit_by = !target.limit_by_field ? null : {
                 field: target.limit_by_field,

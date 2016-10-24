@@ -3,7 +3,7 @@
 System.register([], function (_export, _context) {
   "use strict";
 
-  var DEFAULT_SELECT_FIELD, DEFAULT_SELECT_NS, DEFAULT_DEVICE, DEFAULT_WHERE, DEFAULT_GROUP_BY, DEFAULT_GROUP_BY_OP, ALL_DEVICES, ALL_OPERATORS;
+  var DEFAULT_SELECT_FIELD, DEFAULT_SELECT_NS, DEFAULT_DEVICE, DEFAULT_WHERE, NONE, DEFAULT_GROUP_BY_OP, ALL_DEVICES, ALL_OPERATORS;
   return {
     setters: [],
     execute: function () {
@@ -23,9 +23,9 @@ System.register([], function (_export, _context) {
 
       _export("DEFAULT_WHERE", DEFAULT_WHERE);
 
-      _export("DEFAULT_GROUP_BY", DEFAULT_GROUP_BY = "-- none --");
+      _export("NONE", NONE = "-- none --");
 
-      _export("DEFAULT_GROUP_BY", DEFAULT_GROUP_BY);
+      _export("NONE", NONE);
 
       _export("DEFAULT_GROUP_BY_OP", DEFAULT_GROUP_BY_OP = "mean");
 

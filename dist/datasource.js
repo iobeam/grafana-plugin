@@ -3,7 +3,7 @@
 System.register(["lodash", "./constants"], function (_export, _context) {
     "use strict";
 
-    var _, ALL_DEVICES, DEFAULT_DEVICE, DEFAULT_GROUP_BY, DEFAULT_SELECT_FIELD, DEFAULT_SELECT_NS, DEFAULT_WHERE, _createClass, DATA_URL, NAMESPACES_URL, GenericDatasource;
+    var _, ALL_DEVICES, DEFAULT_DEVICE, DEFAULT_SELECT_FIELD, DEFAULT_SELECT_NS, DEFAULT_WHERE, NONE, _createClass, DATA_URL, NAMESPACES_URL, GenericDatasource;
 
     function _classCallCheck(instance, Constructor) {
         if (!(instance instanceof Constructor)) {
@@ -74,19 +74,18 @@ System.register(["lodash", "./constants"], function (_export, _context) {
 
     function buildGroupByParam(t, interval) {
         var ret = {};
-        if (interval) {
-            ret.group_by = "time(" + interval + ")";
-            ret.operator = "mean";
-        }
-
         if (t.group_by) {
-            if (t.group_by.field !== DEFAULT_GROUP_BY) {
+            if (t.group_by.operator && interval && t.group_by.operator !== NONE) {
+                ret.group_by = "time(" + interval + ")";
+                ret.operator = t.group_by.operator;
+            }
+
+            if (t.group_by.field && t.group_by.field !== NONE) {
                 if (ret.group_by) {
                     ret.group_by += ",";
                 }
                 ret.group_by += t.group_by.field;
             }
-            ret.operator = t.group_by.operator;
         }
 
         return ret;
@@ -94,7 +93,7 @@ System.register(["lodash", "./constants"], function (_export, _context) {
 
     function buildLimitByParam(t) {
         if (t.limit_by) {
-            if (t.limit_by.field !== DEFAULT_GROUP_BY) {
+            if (t.limit_by.field !== NONE) {
                 var _t$limit_by = t.limit_by;
                 var limit = _t$limit_by.limit;
                 var field = _t$limit_by.field;
@@ -130,10 +129,10 @@ System.register(["lodash", "./constants"], function (_export, _context) {
         }, function (_constants) {
             ALL_DEVICES = _constants.ALL_DEVICES;
             DEFAULT_DEVICE = _constants.DEFAULT_DEVICE;
-            DEFAULT_GROUP_BY = _constants.DEFAULT_GROUP_BY;
             DEFAULT_SELECT_FIELD = _constants.DEFAULT_SELECT_FIELD;
             DEFAULT_SELECT_NS = _constants.DEFAULT_SELECT_NS;
             DEFAULT_WHERE = _constants.DEFAULT_WHERE;
+            NONE = _constants.NONE;
         }],
         execute: function () {
             _createClass = function () {
@@ -442,10 +441,13 @@ System.register(["lodash", "./constants"], function (_export, _context) {
                                 }
                             }
 
-                            var group_by = !target.group_by_field ? null : {
-                                field: target.group_by_field,
-                                operator: target.group_by_operator
-                            };
+                            var group_by = {};
+                            if (target.group_by_operator) {
+                                group_by.operator = target.group_by_operator;
+                            }
+                            if (target.group_by_field) {
+                                group_by.field = target.group_by_field;
+                            }
 
                             var limit_by = !target.limit_by_field ? null : {
                                 field: target.limit_by_field,

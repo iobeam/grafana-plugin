@@ -3,11 +3,11 @@ import './css/query-editor.css!'
 import {
     ALL_OPERATORS,
     DEFAULT_DEVICE,
-    DEFAULT_GROUP_BY,
     DEFAULT_GROUP_BY_OP,
     DEFAULT_SELECT_FIELD,
     DEFAULT_SELECT_NS,
-    DEFAULT_WHERE
+    DEFAULT_WHERE,
+    NONE
 } from "./constants";
 
 export class GenericDatasourceQueryCtrl extends QueryCtrl {
@@ -20,10 +20,10 @@ export class GenericDatasourceQueryCtrl extends QueryCtrl {
         this.target.target = this.target.target || DEFAULT_SELECT_FIELD;
         this.target.namespace = this.target.namespace || DEFAULT_SELECT_NS;
         this.target.device_id = this.target.device_id || DEFAULT_DEVICE;
-        this.target.group_by_field = this.target.group_by_field || DEFAULT_GROUP_BY;
+        this.target.group_by_field = this.target.group_by_field || NONE;
         this.target.group_by_operator = this.target.group_by_operator || DEFAULT_GROUP_BY_OP;
         this.target.interval = this.target.interval || this.panelCtrl.interval;
-        this.target.limit_by_field = this.target.limit_by_field || DEFAULT_GROUP_BY;
+        this.target.limit_by_field = this.target.limit_by_field || NONE;
         this.target.limit_by_count = this.target.limit_by_count || 1;
 
         this.target.wheres = this.target.wheres || [[this.uiSegmentSrv.newPlusButton()]];
@@ -104,7 +104,7 @@ export class GenericDatasourceQueryCtrl extends QueryCtrl {
     getGroupByOptions() {
         return this.datasource.fieldQuery(this.target)
             .then((results) => {
-                return [{value: DEFAULT_GROUP_BY, text: DEFAULT_GROUP_BY}].concat(results);
+                return [{value: NONE, text: NONE}].concat(results);
             })
             .then(this.uiSegmentSrv.transformToSegments(false));
     }
@@ -112,7 +112,7 @@ export class GenericDatasourceQueryCtrl extends QueryCtrl {
     getLimitByOptions() {
         return this.datasource.limitByFieldsQuery(this.target)
             .then((results) => {
-                return [{value: DEFAULT_GROUP_BY, text: DEFAULT_GROUP_BY}].concat(results);
+                return [{value: NONE, text: NONE}].concat(results);
             })
             .then(this.uiSegmentSrv.transformToSegments(false));
     }
@@ -128,9 +128,9 @@ export class GenericDatasourceQueryCtrl extends QueryCtrl {
     }
 
     getOperators() {
-        const operators = ["mean", "max", "min", "sum", "count"];
+        const operators = [NONE].concat(ALL_OPERATORS);
         return new Promise((resolve) => {
-            resolve(ALL_OPERATORS.map((v) => {
+            resolve(operators.map((v) => {
                 return {text: v, value: v};
             }));
         }).then(this.uiSegmentSrv.transformToSegments(false));
