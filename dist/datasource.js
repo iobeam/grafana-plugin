@@ -13,7 +13,7 @@ System.register(["lodash", "./constants"], function (_export, _context) {
 
     /** Build string representing iobeam /data endpoint **/
     function buildDataUrl(ns) {
-        var field = arguments.length <= 1 || arguments[1] === undefined ? "all" : arguments[1];
+        var field = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : "all";
 
         return DATA_URL + ns + "/" + field;
     }
@@ -94,9 +94,9 @@ System.register(["lodash", "./constants"], function (_export, _context) {
     function buildLimitByParam(t) {
         if (t.limit_by) {
             if (t.limit_by.field !== NONE) {
-                var _t$limit_by = t.limit_by;
-                var limit = _t$limit_by.limit;
-                var field = _t$limit_by.field;
+                var _t$limit_by = t.limit_by,
+                    limit = _t$limit_by.limit,
+                    field = _t$limit_by.field;
 
                 return {
                     "limit_by": field + "," + limit
@@ -192,19 +192,19 @@ System.register(["lodash", "./constants"], function (_export, _context) {
                         var filteredResult = [];
                         var resultMap = new Map();
                         for (var i = 0; i < results.length; i++) {
-                            var _results$i = results[i];
-                            var device = _results$i.device;
-                            var field = _results$i.field;
-                            var result = _results$i.result;
+                            var _results$i = results[i],
+                                device = _results$i.device,
+                                field = _results$i.field,
+                                result = _results$i.result;
 
                             // Query parameters returned an empty set
                             if (result.status === 200 && result.data.result.length === 0) {
                                 continue;
                             }
 
-                            var _result$data$result$ = result.data.result[0];
-                            var fields = _result$data$result$.fields;
-                            var values = _result$data$result$.values;
+                            var _result$data$result$ = result.data.result[0],
+                                fields = _result$data$result$.fields,
+                                values = _result$data$result$.values;
 
                             var fieldIdx = findFieldIdx(fields, field);
                             var f = fields[fieldIdx];
