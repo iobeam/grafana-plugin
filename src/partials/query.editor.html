@@ -4,9 +4,11 @@
         <div class="gf-form-inline">
             <div class="gf-form">
                 <label class="gf-form-label query-keyword width-7">FROM</label>
+                <metric-segment-model property="ctrl.target.project_title" get-options="ctrl.getProjects()" on-change="ctrl.onChangeInternal()"
+                    css-class="tight-form-item-xxlarge io-segment"></metric-segment-model>
                 <metric-segment-model property="ctrl.target.namespace" get-options="ctrl.getNamespaces()" on-change="ctrl.onChangeInternal()"
                     css-class="tight-form-item-xxlarge io-segment"></metric-segment-model>
-                <metric-segment-model property="ctrl.target.target" get-options="ctrl.getOptions()" on-change="ctrl.onChangeInternal()"
+                <metric-segment-model property="ctrl.target.field" get-options="ctrl.getOptions()" on-change="ctrl.onChangeInternal()"
                     css-class="tight-form-item-xxlarge io-segment"></metric-segment-model>
             </div>
         </div>

@@ -1,23 +1,26 @@
-import {QueryCtrl} from 'app/plugins/sdk';
-import './css/query-editor.css!'
+import {QueryCtrl} from "app/plugins/sdk";
+import "./css/query-editor.css!";
 import {
     ALL_OPERATORS,
     DEFAULT_DEVICE,
     DEFAULT_GROUP_BY_OP,
     DEFAULT_SELECT_FIELD,
     DEFAULT_SELECT_NS,
+    DEFAULT_SELECT_PROJECT,
     DEFAULT_WHERE,
     NONE
 } from "./constants";
 
-export class GenericDatasourceQueryCtrl extends QueryCtrl {
+export class iobeamDatasourceQueryCtrl extends QueryCtrl {
 
     constructor($scope, $injector, uiSegmentSrv)  {
         super($scope, $injector);
 
         this.scope = $scope;
         this.uiSegmentSrv = uiSegmentSrv;
-        this.target.target = this.target.target || DEFAULT_SELECT_FIELD;
+        this.target.field = this.target.field || DEFAULT_SELECT_FIELD;
+        this.target.project_title = this.target.project || DEFAULT_SELECT_PROJECT;
+        this.target.project = this.target.project;
         this.target.namespace = this.target.namespace || DEFAULT_SELECT_NS;
         this.target.device_id = this.target.device_id || DEFAULT_DEVICE;
         this.target.group_by_field = this.target.group_by_field || NONE;
@@ -117,7 +120,16 @@ export class GenericDatasourceQueryCtrl extends QueryCtrl {
             .then(this.uiSegmentSrv.transformToSegments(false));
     }
 
+    getProjects() {
+        return this.datasource.projectQuery(this.target)
+            .then((results) => {
+                return [{text: NONE, value: NONE}].concat(results);
+            })
+            .then(this.uiSegmentSrv.transformToSegments(false));
+    }
+
     getNamespaces() {
+        console.log(this.target);
         return this.datasource.namespaceQuery(this.target)
             .then(this.uiSegmentSrv.transformToSegments(false));
     }
@@ -141,8 +153,9 @@ export class GenericDatasourceQueryCtrl extends QueryCtrl {
     }
 
     onChangeInternal() {
+        console.log("INTERNAL CHANGE");//REMOVE
         this.panelCtrl.refresh(); // Asks the panel to refresh data.
     }
 }
 
-GenericDatasourceQueryCtrl.templateUrl = 'partials/query.editor.html';
+iobeamDatasourceQueryCtrl.templateUrl = "partials/query.editor.html";

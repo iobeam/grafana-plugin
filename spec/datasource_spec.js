@@ -8,7 +8,7 @@ describe('GenericDatasource', function() {
         ctx.$q = Q;
         ctx.backendSrv = {};
         ctx.templateSrv = {};
-        ctx.ds = new Datasource({}, ctx.$q, ctx.backendSrv, ctx.templateSrv);
+        ctx.ds = new Datasource({jsonData: {}}, ctx.$q, ctx.backendSrv, ctx.templateSrv);
 
     });
 

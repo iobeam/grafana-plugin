@@ -3,7 +3,7 @@
 System.register([], function (_export, _context) {
   "use strict";
 
-  var DEFAULT_SELECT_FIELD, DEFAULT_SELECT_NS, DEFAULT_DEVICE, DEFAULT_WHERE, NONE, DEFAULT_GROUP_BY_OP, ALL_DEVICES, ALL_OPERATORS;
+  var DEFAULT_SELECT_FIELD, DEFAULT_SELECT_NS, DEFAULT_SELECT_PROJECT, DEFAULT_DEVICE, DEFAULT_WHERE, NONE, DEFAULT_GROUP_BY_OP, ALL_DEVICES, LAST_PROJECT_TOKEN, ALL_OPERATORS, PROXY_ADDRESS, USER_TOKEN_KEY, USER_TOKEN_SUCCESS;
   return {
     setters: [],
     execute: function () {
@@ -14,6 +14,10 @@ System.register([], function (_export, _context) {
       _export("DEFAULT_SELECT_NS", DEFAULT_SELECT_NS = "-- select namespace --");
 
       _export("DEFAULT_SELECT_NS", DEFAULT_SELECT_NS);
+
+      _export("DEFAULT_SELECT_PROJECT", DEFAULT_SELECT_PROJECT = "-- select project --");
+
+      _export("DEFAULT_SELECT_PROJECT", DEFAULT_SELECT_PROJECT);
 
       _export("DEFAULT_DEVICE", DEFAULT_DEVICE = "-- select device --");
 
@@ -35,9 +39,25 @@ System.register([], function (_export, _context) {
 
       _export("ALL_DEVICES", ALL_DEVICES);
 
+      _export("LAST_PROJECT_TOKEN", LAST_PROJECT_TOKEN = "Last project token");
+
+      _export("LAST_PROJECT_TOKEN", LAST_PROJECT_TOKEN);
+
       _export("ALL_OPERATORS", ALL_OPERATORS = ["mean", "max", "min", "count", "sum"]);
 
       _export("ALL_OPERATORS", ALL_OPERATORS);
+
+      _export("PROXY_ADDRESS", PROXY_ADDRESS = "http://localhost:3000");
+
+      _export("PROXY_ADDRESS", PROXY_ADDRESS);
+
+      _export("USER_TOKEN_KEY", USER_TOKEN_KEY = "user token");
+
+      _export("USER_TOKEN_KEY", USER_TOKEN_KEY);
+
+      _export("USER_TOKEN_SUCCESS", USER_TOKEN_SUCCESS = "user token stored");
+
+      _export("USER_TOKEN_SUCCESS", USER_TOKEN_SUCCESS);
     }
   };
 });

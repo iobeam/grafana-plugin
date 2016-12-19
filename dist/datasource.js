@@ -3,7 +3,7 @@
 System.register(["lodash", "./constants"], function (_export, _context) {
     "use strict";
 
-    var _, ALL_DEVICES, DEFAULT_DEVICE, DEFAULT_SELECT_FIELD, DEFAULT_SELECT_NS, DEFAULT_WHERE, NONE, _createClass, DATA_URL, NAMESPACES_URL, GenericDatasource;
+    var _, USER_TOKEN_KEY, PROXY_ADDRESS, USER_TOKEN_SUCCESS, ALL_DEVICES, DEFAULT_DEVICE, DEFAULT_SELECT_FIELD, DEFAULT_SELECT_NS, DEFAULT_SELECT_PROJECT, DEFAULT_WHERE, LAST_PROJECT_TOKEN, NONE, _typeof, _createClass, DATA_URL, NAMESPACES_URL, PROJECTS_URL, iobeamDatasource;
 
     function _classCallCheck(instance, Constructor) {
         if (!(instance instanceof Constructor)) {
@@ -123,18 +123,39 @@ System.register(["lodash", "./constants"], function (_export, _context) {
         return -1;
     }
 
+    function buildAuthHeader(token) {
+        var prefix = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : "Bearer";
+
+        return {
+            "Authorization": prefix + " " + token,
+            "Accept-Type": "application/json",
+            "Access-Control-Allow-Origin": "http://localhost:3000"
+        };
+    }
+
     return {
         setters: [function (_lodash) {
             _ = _lodash.default;
         }, function (_constants) {
+            USER_TOKEN_KEY = _constants.USER_TOKEN_KEY;
+            PROXY_ADDRESS = _constants.PROXY_ADDRESS;
+            USER_TOKEN_SUCCESS = _constants.USER_TOKEN_SUCCESS;
             ALL_DEVICES = _constants.ALL_DEVICES;
             DEFAULT_DEVICE = _constants.DEFAULT_DEVICE;
             DEFAULT_SELECT_FIELD = _constants.DEFAULT_SELECT_FIELD;
             DEFAULT_SELECT_NS = _constants.DEFAULT_SELECT_NS;
+            DEFAULT_SELECT_PROJECT = _constants.DEFAULT_SELECT_PROJECT;
             DEFAULT_WHERE = _constants.DEFAULT_WHERE;
+            LAST_PROJECT_TOKEN = _constants.LAST_PROJECT_TOKEN;
             NONE = _constants.NONE;
         }],
         execute: function () {
+            _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) {
+                return typeof obj;
+            } : function (obj) {
+                return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
+            };
+
             _createClass = function () {
                 function defineProperties(target, props) {
                     for (var i = 0; i < props.length; i++) {
@@ -155,26 +176,40 @@ System.register(["lodash", "./constants"], function (_export, _context) {
 
             DATA_URL = "/v1/data/";
             NAMESPACES_URL = "/v1/namespaces/";
+            PROJECTS_URL = "/v1/projects/";
 
-            _export("GenericDatasource", GenericDatasource = function () {
-                function GenericDatasource(instanceSettings, $q, backendSrv, templateSrv) {
-                    _classCallCheck(this, GenericDatasource);
 
+            if (window) {
+                window.postMessage("send token", PROXY_ADDRESS);
+
+                window.addEventListener("message", function (e) {
+                    var origin = e.origin || e.originalEvent.origin;
+                    if (origin !== PROXY_ADDRESS || e.data === "send token" || e.data === USER_TOKEN_SUCCESS) {
+                        return;
+                    }
+                    try {
+                        window.localStorage.setItem(USER_TOKEN_KEY, e.data.token);
+                        window.postMessage(USER_TOKEN_SUCCESS, PROXY_ADDRESS);
+                        console.log("User token set");
+                    } catch (e) {
+                        console.warn("Error: User token not set");
+                        window.postMessage("", PROXY_ADDRESS);
+                    }
+                });
+            }
+            _export("iobeamDatasource", iobeamDatasource = function () {
+                function iobeamDatasource(instanceSettings, $q, backendSrv, templateSrv) {
+                    _classCallCheck(this, iobeamDatasource);
+
+                    this.localStorage = window.localStorage;
                     this.type = instanceSettings.type;
                     this.url = instanceSettings.url;
                     this.name = instanceSettings.name;
-                    if (instanceSettings.jsonData) {
-                        this.pid = parseInt(instanceSettings.jsonData.iobeam_project_id);
-                        this.token = instanceSettings.jsonData.iobeam_project_token;
-                    }
+                    this.userToken = instanceSettings.jsonData.iobeam_user_token;
+                    this.projectToken = "";
                     this.q = $q;
                     this.backendSrv = backendSrv;
                     this.templateSrv = templateSrv;
-
-                    this.headers = {
-                        "Accept-Type": "application/json",
-                        "Authorization": "Bearer " + this.token
-                    };
                 }
 
                 /**
@@ -186,7 +221,7 @@ System.register(["lodash", "./constants"], function (_export, _context) {
                  **/
 
 
-                _createClass(GenericDatasource, [{
+                _createClass(iobeamDatasource, [{
                     key: "parseQueryResults",
                     value: function parseQueryResults(results) {
                         var filteredResult = [];
@@ -236,15 +271,28 @@ System.register(["lodash", "./constants"], function (_export, _context) {
                         return { data: filteredResult };
                     }
                 }, {
+                    key: "getUserToken",
+                    value: function getUserToken() {
+                        if (this.localStorage[USER_TOKEN_KEY]) {
+                            return this.localStorage.getItem(USER_TOKEN_KEY);
+                        } else if (this.user_token) {
+                            this.localStorage.setItem(USER_TOKEN_KEY, this.user_token);
+                            return this.user_token;
+                        } else {
+                            console.log("User token not set");
+                            return "";
+                        }
+                    }
+                }, {
                     key: "query",
                     value: function query(options) {
                         var _this = this;
 
-                        console.log(options);
                         var query = this.buildQueryParameters(options);
                         query.targets = query.targets.filter(function (t) {
                             return !t.hide;
                         });
+                        console.log("QUERY TARGETS", query.targets.length); //REMOVE
                         if (query.targets.length <= 0) {
                             return this.q.when({ data: [] });
                         } else if (query.targets.length === 1 && !query.targets[0].target) {
@@ -289,16 +337,18 @@ System.register(["lodash", "./constants"], function (_export, _context) {
                             Object.assign(queryParams, buildGroupByParam(t, t.interval || query.interval));
                             Object.assign(queryParams, buildLimitByParam(t));
 
-                            _req.url = this.url + buildDataUrl(t.namespace, t.target) + buildUrlQueryStr(queryParams);
+                            _req.url = this.url + buildDataUrl(t.namespace, t.field) + buildUrlQueryStr(queryParams);
+                            _req.project_title = t.project_title;
                             reqs.push(_req);
                         }
 
                         // Helper function to create the headers for each request.
-                        var headers = this.headers;
-                        var makeDataSourceRequest = function makeDataSourceRequest(req) {
+                        var boundToken = this.getProjectToken.bind(this);
+
+                        var makeDataSourceRequest = function makeDataSourceRequest(req, token) {
                             return {
                                 method: "GET",
-                                headers: headers,
+                                headers: buildAuthHeader(token),
                                 url: req.url
                             };
                         };
@@ -310,110 +360,196 @@ System.register(["lodash", "./constants"], function (_export, _context) {
                         // it launches the next one with a similar callback. If there are no
                         // more requests, it parses all the collected responses.
                         var intermdiateFn = function intermdiateFn(device, field) {
+                            console.log("Adding Query");
                             return function (result) {
                                 resps.push({ device: device, field: field, result: result });
                                 if (reqs.length === 0) {
+                                    console.log("RESPS", resps); //REMOVE
                                     return _this.parseQueryResults(resps);
                                 } else {
-                                    var _req2 = reqs.shift();
-                                    return _this.backendSrv.datasourceRequest(makeDataSourceRequest(_req2)).then(intermdiateFn(_req2.device, _req2.field));
+                                    var _ret = function () {
+                                        var req = reqs.shift();
+                                        console.log("RESPS DECREASE", resps); //REMOVE
+                                        return {
+                                            v: boundToken(req.project_title, function (token) {
+                                                return _this.backendSrv.datasourceRequest(makeDataSourceRequest(req, token)).then(intermdiateFn(req.device, req.field));
+                                            })
+                                        };
+                                    }();
+
+                                    if ((typeof _ret === "undefined" ? "undefined" : _typeof(_ret)) === "object") return _ret.v;
                                 }
                             };
                         };
 
                         var req = reqs.shift();
-                        return this.backendSrv.datasourceRequest(makeDataSourceRequest(req)).then(intermdiateFn(req.device, req.field));
+                        return boundToken(req.project_title, function (token) {
+                            console.log("INITIAL RESP CALL");
+                            return _this.backendSrv.datasourceRequest(makeDataSourceRequest(req)).then(intermdiateFn(req.device, req.field));
+                        });
                     }
                 }, {
                     key: "testDatasource",
                     value: function testDatasource() {
                         return this.backendSrv.datasourceRequest({
                             url: this.url + "/v1/ping",
-                            method: "GET"
+                            method: "GET",
+                            headers: buildAuthHeader()
                         }).then(function (response) {
-                            if (response.status === 200) {
-                                return { status: "success", message: "Data source is working.", title: "Success" };
+                            if (response.status === 200 /*&& /https/.test(this.url) TODO(fix when PR comes through)*/) {
+                                    return { status: "success", message: "Data source is working.  Make sure you use 'https'", title: "Success" };
+                                    // } else if (response.status === 200) {
+                                    //     return {status: "failure", message: "Please use 'https'", title: "Wrong scheme"};
+                                } else {
+                                return "";
                             }
                         });
                     }
                 }, {
+                    key: "getProjectToken",
+                    value: function getProjectToken(project_title, innerFn) {
+                        var _this2 = this;
+
+                        var project_id = project_title ? project_title.match(/\(([0-9]+)\)/)[1] : this.project_id;
+                        //get stored token if it exists
+                        if (!project_id) {
+                            var token = this.project_token || this.localStorage[LAST_PROJECT_TOKEN];
+                            if (token) {
+                                return innerFn(this.project_token || this.localStorage[LAST_PROJECT_TOKEN]);
+                            }
+                            return null;
+                        } else if (this.localStorage[project_id]) {
+                            return innerFn(this.localStorage.getItem(project_id));
+                        } else {
+                            return this.backendSrv.datasourceRequest({
+                                url: this.url + "/v1/tokens/project?project_id=" + project_id,
+                                method: "GET",
+                                headers: buildAuthHeader(this.getUserToken())
+                            }).then(function (response) {
+                                if (response.status === 200) {
+                                    _this2.localStorage.setItem(project_id, response.data.token);
+                                    _this2.localStorage.setItem(LAST_PROJECT_TOKEN, response.data.token);
+                                    _this2.project_id = project_id;
+                                    _this2.projectToken = response.data.token;
+                                    return innerFn(response.data.token);
+                                } else {
+                                    console.log("Error retreiving project token");
+                                    return "";
+                                }
+                            });
+                        }
+                    }
+                }, {
                     key: "deviceQuery",
                     value: function deviceQuery(options) {
-                        var ns = options.namespace;
-                        return this.backendSrv.datasourceRequest({
-                            url: this.url + buildDataUrl(ns, "device_id") + "?limit_by=device_id,1&limit=1000",
-                            data: options,
-                            method: "GET",
-                            headers: this.headers
-                        }).then(function (result) {
-                            var values = result.data.result[0].values;
+                        var _this3 = this;
 
-                            var sorted = values.sort(function (a, b) {
-                                return a[1].localeCompare(b[1]);
-                            });
-                            sorted.unshift([null, ALL_DEVICES]);
-                            return _.map(sorted, function (row) {
-                                return { text: row[1], value: row[1] };
+                        var ns = options.namespace;
+                        return this.getProjectToken(options.project_title, function (token) {
+                            return _this3.backendSrv.datasourceRequest({
+                                url: _this3.url + buildDataUrl(ns, "device_id") + "?limit_by=device_id,1&limit=1000",
+                                data: options, //TODO(scao) - is this needed?
+                                method: "GET",
+                                headers: buildAuthHeader(token)
+                            }).then(function (result) {
+                                var values = result.data.result[0].values;
+
+                                var sorted = values.sort(function (a, b) {
+                                    return a[1].localeCompare(b[1]);
+                                });
+                                sorted.unshift([null, ALL_DEVICES]);
+                                return _.map(sorted, function (row) {
+                                    return { text: row[1], value: row[1] };
+                                });
                             });
                         });
                     }
                 }, {
                     key: "fieldQuery",
                     value: function fieldQuery(options) {
+                        var _this4 = this;
+
                         if (!options.namespace || options.namespace === DEFAULT_SELECT_NS) {
                             return this.q.when([]);
                         }
-                        return this.backendSrv.datasourceRequest({
-                            url: this.url + buildDataUrl(options.namespace) + "?limit=1",
-                            data: options,
-                            method: "GET",
-                            headers: this.headers
-                        }).then(function (result) {
-                            var fields = result.data.result[0].fields;
+                        return this.getProjectToken(options.project_title, function (token) {
+                            return _this4.backendSrv.datasourceRequest({
+                                url: _this4.url + buildDataUrl(options.namespace) + "?limit=1",
+                                data: options, //TODO(scao) - is this needed?
+                                method: "GET",
+                                headers: buildAuthHeader(token)
+                            }).then(function (result) {
+                                var fields = result.data.result[0].fields;
 
-                            return _.map(fields.slice(1), function (f) {
-                                return { text: f, value: f };
+                                return _.map(fields.slice(1), function (f) {
+                                    return { text: f, value: f };
+                                });
                             });
                         });
                     }
                 }, {
                     key: "namespaceQuery",
                     value: function namespaceQuery(options) {
-                        return this.backendSrv.datasourceRequest({
-                            url: this.url + NAMESPACES_URL,
-                            data: options,
-                            method: "GET",
-                            headers: this.headers
-                        }).then(function (result) {
-                            var namespaces = result.data.namespaces;
+                        var _this5 = this;
 
-                            return _.map(namespaces, function (ns) {
-                                return { text: ns.namespace_name, value: ns.namespace_name };
+                        return this.getProjectToken(options.project_title, function (token) {
+                            return _this5.backendSrv.datasourceRequest({
+                                url: _this5.url + NAMESPACES_URL,
+                                data: options, //TODO(scao) - is this needed?
+                                method: "GET",
+                                headers: buildAuthHeader(token)
+                            }).then(function (result) {
+                                var namespaces = result.data.namespaces;
+
+                                return _.map(namespaces, function (ns) {
+                                    return { text: ns.namespace_name, value: ns.namespace_name };
+                                });
+                            });
+                        });
+                    }
+                }, {
+                    key: "projectQuery",
+                    value: function projectQuery(options) {
+                        return this.backendSrv.datasourceRequest({
+                            url: this.url + PROJECTS_URL,
+                            data: options, //TODO(scao) - is this needed?
+                            method: "GET",
+                            headers: buildAuthHeader(this.getUserToken())
+                        }).then(function (result) {
+                            var projects = result.data.projects;
+
+                            return _.map(projects, function (project) {
+                                var text = project.project_name + "(" + project.project_id + ")";
+                                return { text: text, value: project.project_id };
                             });
                         });
                     }
                 }, {
                     key: "limitByFieldsQuery",
                     value: function limitByFieldsQuery(options) {
+                        var _this6 = this;
+
                         if (!options.namespace || options.namespace === DEFAULT_SELECT_NS) {
                             return this.q.when([]);
                         }
-                        return this.backendSrv.datasourceRequest({
-                            url: this.url + NAMESPACES_URL + buildUrlQueryStr({ namespace_name: options.namespace }),
-                            data: options,
-                            method: "GET",
-                            headers: this.headers
-                        }).then(function (result) {
-                            var namespaces = result.data.namespaces;
-                            var labels = namespaces[0].labels;
+                        return this.getProjectToken(options.project_title, function (token) {
+                            return _this6.backendSrv.datasourceRequest({
+                                url: _this6.url + NAMESPACES_URL + buildUrlQueryStr({ namespace_name: options.namespace }),
+                                data: options, //TODO(scao) - is this needed?
+                                method: "GET",
+                                headers: buildAuthHeader()
+                            }).then(function (result) {
+                                var namespaces = result.data.namespaces;
+                                var labels = namespaces[0].labels;
 
-                            var temp = _.filter(Object.keys(labels), function (label) {
-                                return label.indexOf(":distinct") !== -1;
-                            });
-                            return _.map(temp, function (label) {
-                                var idx = label.indexOf(":distinct");
-                                var val = label.substring(0, idx);
-                                return { text: val, value: val };
+                                var temp = _.filter(Object.keys(labels), function (label) {
+                                    return label.indexOf(":distinct") !== -1;
+                                });
+                                return _.map(temp, function (label) {
+                                    var idx = label.indexOf(":distinct");
+                                    var val = label.substring(0, idx);
+                                    return { text: val, value: val };
+                                });
                             });
                         });
                     }
@@ -423,11 +559,11 @@ System.register(["lodash", "./constants"], function (_export, _context) {
                 }, {
                     key: "buildQueryParameters",
                     value: function buildQueryParameters(options) {
-                        var _this2 = this;
+                        var _this7 = this;
 
                         // remove placeholder targets
                         options.targets = _.filter(options.targets, function (target) {
-                            return target.target !== DEFAULT_SELECT_FIELD && target.namespace !== DEFAULT_SELECT_NS && target.device_id !== DEFAULT_DEVICE;
+                            return target.field !== DEFAULT_SELECT_FIELD && target.namespace !== DEFAULT_SELECT_NS && target.device_id !== DEFAULT_DEVICE && target.project !== DEFAULT_SELECT_PROJECT;
                         });
 
                         var targets = _.map(options.targets, function (target) {
@@ -455,9 +591,11 @@ System.register(["lodash", "./constants"], function (_export, _context) {
                             };
 
                             return {
-                                target: _this2.templateSrv.replace(target.target),
-                                namespace: _this2.templateSrv.replace(target.namespace),
-                                device_id: _this2.templateSrv.replace(target.device_id),
+                                field: _this7.templateSrv.replace(target.field),
+                                namespace: _this7.templateSrv.replace(target.namespace),
+                                device_id: _this7.templateSrv.replace(target.device_id),
+                                project_title: target.project_title,
+                                project: target.project,
                                 group_by: group_by,
                                 limit_by: limit_by,
                                 wheres: wheres,
@@ -473,10 +611,10 @@ System.register(["lodash", "./constants"], function (_export, _context) {
                     }
                 }]);
 
-                return GenericDatasource;
+                return iobeamDatasource;
             }());
 
-            _export("GenericDatasource", GenericDatasource);
+            _export("iobeamDatasource", iobeamDatasource);
         }
     };
 });

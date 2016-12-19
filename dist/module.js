@@ -1,9 +1,9 @@
-'use strict';
+"use strict";
 
-System.register(['./datasource', './query_ctrl'], function (_export, _context) {
+System.register(["./datasource", "./query_ctrl", "./constants"], function (_export, _context) {
   "use strict";
 
-  var GenericDatasource, GenericDatasourceQueryCtrl, GenericConfigCtrl, GenericQueryOptionsCtrl, GenericAnnotationsQueryCtrl;
+  var iobeamDatasource, iobeamDatasourceQueryCtrl, PROXY_ADDRESS, USER_TOKEN_KEY, USER_TOKEN_SUCCESS, GenericConfigCtrl, GenericQueryOptionsCtrl, GenericAnnotationsQueryCtrl;
 
   function _classCallCheck(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
@@ -13,38 +13,42 @@ System.register(['./datasource', './query_ctrl'], function (_export, _context) {
 
   return {
     setters: [function (_datasource) {
-      GenericDatasource = _datasource.GenericDatasource;
+      iobeamDatasource = _datasource.iobeamDatasource;
     }, function (_query_ctrl) {
-      GenericDatasourceQueryCtrl = _query_ctrl.GenericDatasourceQueryCtrl;
+      iobeamDatasourceQueryCtrl = _query_ctrl.iobeamDatasourceQueryCtrl;
+    }, function (_constants) {
+      PROXY_ADDRESS = _constants.PROXY_ADDRESS;
+      USER_TOKEN_KEY = _constants.USER_TOKEN_KEY;
+      USER_TOKEN_SUCCESS = _constants.USER_TOKEN_SUCCESS;
     }],
     execute: function () {
-      _export('ConfigCtrl', GenericConfigCtrl = function GenericConfigCtrl() {
+      _export("ConfigCtrl", GenericConfigCtrl = function GenericConfigCtrl() {
         _classCallCheck(this, GenericConfigCtrl);
       });
 
-      GenericConfigCtrl.templateUrl = 'partials/config.html';
+      GenericConfigCtrl.templateUrl = "partials/config.html";
 
-      _export('QueryOptionsCtrl', GenericQueryOptionsCtrl = function GenericQueryOptionsCtrl() {
+      _export("QueryOptionsCtrl", GenericQueryOptionsCtrl = function GenericQueryOptionsCtrl() {
         _classCallCheck(this, GenericQueryOptionsCtrl);
       });
 
-      GenericQueryOptionsCtrl.templateUrl = 'partials/query.options.html';
+      GenericQueryOptionsCtrl.templateUrl = "partials/query.options.html";
 
-      _export('AnnotationsQueryCtrl', GenericAnnotationsQueryCtrl = function GenericAnnotationsQueryCtrl() {
+      _export("AnnotationsQueryCtrl", GenericAnnotationsQueryCtrl = function GenericAnnotationsQueryCtrl() {
         _classCallCheck(this, GenericAnnotationsQueryCtrl);
       });
 
-      GenericAnnotationsQueryCtrl.templateUrl = 'partials/annotations.editor.html';
+      GenericAnnotationsQueryCtrl.templateUrl = "partials/annotations.editor.html";
 
-      _export('Datasource', GenericDatasource);
+      _export("Datasource", iobeamDatasource);
 
-      _export('QueryCtrl', GenericDatasourceQueryCtrl);
+      _export("QueryCtrl", iobeamDatasourceQueryCtrl);
 
-      _export('ConfigCtrl', GenericConfigCtrl);
+      _export("ConfigCtrl", GenericConfigCtrl);
 
-      _export('QueryOptionsCtrl', GenericQueryOptionsCtrl);
+      _export("QueryOptionsCtrl", GenericQueryOptionsCtrl);
 
-      _export('AnnotationsQueryCtrl', GenericAnnotationsQueryCtrl);
+      _export("AnnotationsQueryCtrl", GenericAnnotationsQueryCtrl);
     }
   };
 });

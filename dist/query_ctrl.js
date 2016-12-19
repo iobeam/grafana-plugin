@@ -1,9 +1,9 @@
-'use strict';
+"use strict";
 
-System.register(['app/plugins/sdk', './css/query-editor.css!', './constants'], function (_export, _context) {
+System.register(["app/plugins/sdk", "./css/query-editor.css!", "./constants"], function (_export, _context) {
     "use strict";
 
-    var QueryCtrl, ALL_OPERATORS, DEFAULT_DEVICE, DEFAULT_GROUP_BY_OP, DEFAULT_SELECT_FIELD, DEFAULT_SELECT_NS, DEFAULT_WHERE, NONE, _createClass, GenericDatasourceQueryCtrl;
+    var QueryCtrl, ALL_OPERATORS, DEFAULT_DEVICE, DEFAULT_GROUP_BY_OP, DEFAULT_SELECT_FIELD, DEFAULT_SELECT_NS, DEFAULT_SELECT_PROJECT, DEFAULT_WHERE, NONE, _createClass, iobeamDatasourceQueryCtrl;
 
     function _classCallCheck(instance, Constructor) {
         if (!(instance instanceof Constructor)) {
@@ -44,6 +44,7 @@ System.register(['app/plugins/sdk', './css/query-editor.css!', './constants'], f
             DEFAULT_GROUP_BY_OP = _constants.DEFAULT_GROUP_BY_OP;
             DEFAULT_SELECT_FIELD = _constants.DEFAULT_SELECT_FIELD;
             DEFAULT_SELECT_NS = _constants.DEFAULT_SELECT_NS;
+            DEFAULT_SELECT_PROJECT = _constants.DEFAULT_SELECT_PROJECT;
             DEFAULT_WHERE = _constants.DEFAULT_WHERE;
             NONE = _constants.NONE;
         }],
@@ -66,17 +67,19 @@ System.register(['app/plugins/sdk', './css/query-editor.css!', './constants'], f
                 };
             }();
 
-            _export('GenericDatasourceQueryCtrl', GenericDatasourceQueryCtrl = function (_QueryCtrl) {
-                _inherits(GenericDatasourceQueryCtrl, _QueryCtrl);
+            _export("iobeamDatasourceQueryCtrl", iobeamDatasourceQueryCtrl = function (_QueryCtrl) {
+                _inherits(iobeamDatasourceQueryCtrl, _QueryCtrl);
 
-                function GenericDatasourceQueryCtrl($scope, $injector, uiSegmentSrv) {
-                    _classCallCheck(this, GenericDatasourceQueryCtrl);
+                function iobeamDatasourceQueryCtrl($scope, $injector, uiSegmentSrv) {
+                    _classCallCheck(this, iobeamDatasourceQueryCtrl);
 
-                    var _this = _possibleConstructorReturn(this, (GenericDatasourceQueryCtrl.__proto__ || Object.getPrototypeOf(GenericDatasourceQueryCtrl)).call(this, $scope, $injector));
+                    var _this = _possibleConstructorReturn(this, (iobeamDatasourceQueryCtrl.__proto__ || Object.getPrototypeOf(iobeamDatasourceQueryCtrl)).call(this, $scope, $injector));
 
                     _this.scope = $scope;
                     _this.uiSegmentSrv = uiSegmentSrv;
-                    _this.target.target = _this.target.target || DEFAULT_SELECT_FIELD;
+                    _this.target.field = _this.target.field || DEFAULT_SELECT_FIELD;
+                    _this.target.project_title = _this.target.project || DEFAULT_SELECT_PROJECT;
+                    _this.target.project = _this.target.project;
                     _this.target.namespace = _this.target.namespace || DEFAULT_SELECT_NS;
                     _this.target.device_id = _this.target.device_id || DEFAULT_DEVICE;
                     _this.target.group_by_field = _this.target.group_by_field || NONE;
@@ -104,8 +107,8 @@ System.register(['app/plugins/sdk', './css/query-editor.css!', './constants'], f
                 /** Add a new where row to the UI, pushing down the plus button **/
 
 
-                _createClass(GenericDatasourceQueryCtrl, [{
-                    key: 'addWhereRow',
+                _createClass(iobeamDatasourceQueryCtrl, [{
+                    key: "addWhereRow",
                     value: function addWhereRow(rowIdx) {
                         var field = this.uiSegmentSrv.newSegment("");
                         field.cssClass = "io-segment io-where-clause";
@@ -121,7 +124,7 @@ System.register(['app/plugins/sdk', './css/query-editor.css!', './constants'], f
                         this.target.wheres.push([button]);
                     }
                 }, {
-                    key: 'wheresClicked',
+                    key: "wheresClicked",
                     value: function wheresClicked(segment, rowIdx, idx) {
                         // Handle plus button clicks
                         if (segment.type === "plus-button") {
@@ -140,12 +143,12 @@ System.register(['app/plugins/sdk', './css/query-editor.css!', './constants'], f
                         return new Promise(function () {});
                     }
                 }, {
-                    key: 'wheresUpdated',
+                    key: "wheresUpdated",
                     value: function wheresUpdated(segment, rowIdx, idx) {
                         this.panelCtrl.refresh();
                     }
                 }, {
-                    key: 'wheresEntered',
+                    key: "wheresEntered",
                     value: function wheresEntered(event, rowIdx, idx) {
                         if (event && event.target) {
                             this.target.wheres[rowIdx][idx].value = event.target.value;
@@ -153,47 +156,55 @@ System.register(['app/plugins/sdk', './css/query-editor.css!', './constants'], f
                         }
                     }
                 }, {
-                    key: 'limitCount',
+                    key: "limitCount",
                     value: function limitCount(event) {
                         this.target.limit_by_count = event.target.value;
                         this.panelCtrl.refresh();
                     }
                 }, {
-                    key: 'intervalClicked',
+                    key: "intervalClicked",
                     value: function intervalClicked() {
                         return new Promise(function () {});
                     }
                 }, {
-                    key: 'getOptions',
+                    key: "getOptions",
                     value: function getOptions() {
                         return this.datasource.fieldQuery(this.target).then(this.uiSegmentSrv.transformToSegments(false));
                     }
                 }, {
-                    key: 'getGroupByOptions',
+                    key: "getGroupByOptions",
                     value: function getGroupByOptions() {
                         return this.datasource.fieldQuery(this.target).then(function (results) {
                             return [{ value: NONE, text: NONE }].concat(results);
                         }).then(this.uiSegmentSrv.transformToSegments(false));
                     }
                 }, {
-                    key: 'getLimitByOptions',
+                    key: "getLimitByOptions",
                     value: function getLimitByOptions() {
                         return this.datasource.limitByFieldsQuery(this.target).then(function (results) {
                             return [{ value: NONE, text: NONE }].concat(results);
                         }).then(this.uiSegmentSrv.transformToSegments(false));
                     }
                 }, {
-                    key: 'getNamespaces',
+                    key: "getProjects",
+                    value: function getProjects() {
+                        return this.datasource.projectQuery(this.target).then(function (results) {
+                            return [{ text: NONE, value: NONE }].concat(results);
+                        }).then(this.uiSegmentSrv.transformToSegments(false));
+                    }
+                }, {
+                    key: "getNamespaces",
                     value: function getNamespaces() {
+                        console.log(this.target);
                         return this.datasource.namespaceQuery(this.target).then(this.uiSegmentSrv.transformToSegments(false));
                     }
                 }, {
-                    key: 'getDevices',
+                    key: "getDevices",
                     value: function getDevices() {
                         return this.datasource.deviceQuery(this.target).then(this.uiSegmentSrv.transformToSegments(false));
                     }
                 }, {
-                    key: 'getOperators',
+                    key: "getOperators",
                     value: function getOperators() {
                         var operators = [NONE].concat(ALL_OPERATORS);
                         return new Promise(function (resolve) {
@@ -203,23 +214,24 @@ System.register(['app/plugins/sdk', './css/query-editor.css!', './constants'], f
                         }).then(this.uiSegmentSrv.transformToSegments(false));
                     }
                 }, {
-                    key: 'toggleEditorMode',
+                    key: "toggleEditorMode",
                     value: function toggleEditorMode() {
                         this.target.rawQuery = !this.target.rawQuery;
                     }
                 }, {
-                    key: 'onChangeInternal',
+                    key: "onChangeInternal",
                     value: function onChangeInternal() {
+                        console.log("INTERNAL CHANGE"); //REMOVE
                         this.panelCtrl.refresh(); // Asks the panel to refresh data.
                     }
                 }]);
 
-                return GenericDatasourceQueryCtrl;
+                return iobeamDatasourceQueryCtrl;
             }(QueryCtrl));
 
-            _export('GenericDatasourceQueryCtrl', GenericDatasourceQueryCtrl);
+            _export("iobeamDatasourceQueryCtrl", iobeamDatasourceQueryCtrl);
 
-            GenericDatasourceQueryCtrl.templateUrl = 'partials/query.editor.html';
+            iobeamDatasourceQueryCtrl.templateUrl = "partials/query.editor.html";
         }
     };
 });
