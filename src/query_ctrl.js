@@ -18,9 +18,8 @@ export class iobeamDatasourceQueryCtrl extends QueryCtrl {
 
         this.scope = $scope;
         this.uiSegmentSrv = uiSegmentSrv;
-        this.target.field = this.target.field || DEFAULT_SELECT_FIELD;
-        this.target.project_title = this.target.project || DEFAULT_SELECT_PROJECT;
-        this.target.project = this.target.project;
+        this.target.target = this.target.target || DEFAULT_SELECT_FIELD;
+        this.target.project = this.target.project || DEFAULT_SELECT_PROJECT;
         this.target.namespace = this.target.namespace || DEFAULT_SELECT_NS;
         this.target.device_id = this.target.device_id || DEFAULT_DEVICE;
         this.target.group_by_field = this.target.group_by_field || NONE;
@@ -129,7 +128,6 @@ export class iobeamDatasourceQueryCtrl extends QueryCtrl {
     }
 
     getNamespaces() {
-        console.log(this.target);
         return this.datasource.namespaceQuery(this.target)
             .then(this.uiSegmentSrv.transformToSegments(false));
     }
@@ -153,8 +151,28 @@ export class iobeamDatasourceQueryCtrl extends QueryCtrl {
     }
 
     onChangeInternal() {
-        console.log("INTERNAL CHANGE");//REMOVE
-        this.panelCtrl.refresh(); // Asks the panel to refresh data.
+        this.refresh(); // Asks the panel to refresh data.
+    }
+
+    onChangeNamespace() {
+        this.refresh();
+    }
+
+    onChangeField() {
+        this.refresh();
+    }
+
+    onChangeProject() {
+        // reset namespace value in selector
+        this.datasource.namespaceQuery(this.target)
+            .then(() => {
+                return function(results) {
+                    if (results.length > 0) {
+                        this.target.namespace = results[0].text;
+                    }
+                };
+            });
+        this.refresh();
     }
 }
 

@@ -3,7 +3,7 @@
 System.register(["lodash", "./constants"], function (_export, _context) {
     "use strict";
 
-    var _, USER_TOKEN_KEY, PROXY_ADDRESS, USER_TOKEN_SUCCESS, ALL_DEVICES, DEFAULT_DEVICE, DEFAULT_SELECT_FIELD, DEFAULT_SELECT_NS, DEFAULT_SELECT_PROJECT, DEFAULT_WHERE, LAST_PROJECT_TOKEN, NONE, _typeof, _createClass, DATA_URL, NAMESPACES_URL, PROJECTS_URL, iobeamDatasource;
+    var _, USER_TOKEN_KEY, PROXY_ADDRESS, USER_TOKEN_SUCCESS, ALL_DEVICES, DEFAULT_DEVICE, DEFAULT_SELECT_FIELD, DEFAULT_SELECT_NS, DEFAULT_SELECT_PROJECT, DEFAULT_WHERE, LAST_PROJECT_TOKEN, NONE, _createClass, DATA_URL, NAMESPACES_URL, PROJECTS_URL, iobeamDatasource;
 
     function _classCallCheck(instance, Constructor) {
         if (!(instance instanceof Constructor)) {
@@ -150,12 +150,6 @@ System.register(["lodash", "./constants"], function (_export, _context) {
             NONE = _constants.NONE;
         }],
         execute: function () {
-            _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) {
-                return typeof obj;
-            } : function (obj) {
-                return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
-            };
-
             _createClass = function () {
                 function defineProperties(target, props) {
                     for (var i = 0; i < props.length; i++) {
@@ -236,7 +230,6 @@ System.register(["lodash", "./constants"], function (_export, _context) {
                             if (result.status === 200 && result.data.result.length === 0) {
                                 continue;
                             }
-
                             var _result$data$result$ = result.data.result[0],
                                 fields = _result$data$result$.fields,
                                 values = _result$data$result$.values;
@@ -292,7 +285,6 @@ System.register(["lodash", "./constants"], function (_export, _context) {
                         query.targets = query.targets.filter(function (t) {
                             return !t.hide;
                         });
-                        console.log("QUERY TARGETS", query.targets.length); //REMOVE
                         if (query.targets.length <= 0) {
                             return this.q.when({ data: [] });
                         } else if (query.targets.length === 1 && !query.targets[0].target) {
@@ -304,9 +296,10 @@ System.register(["lodash", "./constants"], function (_export, _context) {
                         // request is {device: ..., url: ...}. 'device' tells us
                         // the device this is for (to pass along to parsing function), and
                         // 'url' is the iobeam backend url to hit.
-                        for (var i = 0; i < query.targets.length; i++) {
+
+                        var _loop = function _loop(i) {
                             var t = query.targets[i];
-                            var _req = {
+                            var req = {
                                 device: t.device_id,
                                 field: t.target
                             };
@@ -337,18 +330,25 @@ System.register(["lodash", "./constants"], function (_export, _context) {
                             Object.assign(queryParams, buildGroupByParam(t, t.interval || query.interval));
                             Object.assign(queryParams, buildLimitByParam(t));
 
-                            _req.url = this.url + buildDataUrl(t.namespace, t.field) + buildUrlQueryStr(queryParams);
-                            _req.project_title = t.project_title;
-                            reqs.push(_req);
+                            req.url = _this.url + buildDataUrl(t.namespace, t.target) + buildUrlQueryStr(queryParams);
+                            req.project = t.project;
+                            _this.getProjectToken(t.project, function (token) {
+                                req.token = token;
+                                if (token) {
+                                    reqs.push(req);
+                                }
+                            });
+                        };
+
+                        for (var i = 0; i < query.targets.length; i++) {
+                            _loop(i);
                         }
 
                         // Helper function to create the headers for each request.
-                        var boundToken = this.getProjectToken.bind(this);
-
-                        var makeDataSourceRequest = function makeDataSourceRequest(req, token) {
+                        var makeDataSourceRequest = function makeDataSourceRequest(req) {
                             return {
                                 method: "GET",
-                                headers: buildAuthHeader(token),
+                                headers: buildAuthHeader(req.token),
                                 url: req.url
                             };
                         };
@@ -360,33 +360,20 @@ System.register(["lodash", "./constants"], function (_export, _context) {
                         // it launches the next one with a similar callback. If there are no
                         // more requests, it parses all the collected responses.
                         var intermdiateFn = function intermdiateFn(device, field) {
-                            console.log("Adding Query");
                             return function (result) {
                                 resps.push({ device: device, field: field, result: result });
                                 if (reqs.length === 0) {
-                                    console.log("RESPS", resps); //REMOVE
                                     return _this.parseQueryResults(resps);
                                 } else {
-                                    var _ret = function () {
-                                        var req = reqs.shift();
-                                        console.log("RESPS DECREASE", resps); //REMOVE
-                                        return {
-                                            v: boundToken(req.project_title, function (token) {
-                                                return _this.backendSrv.datasourceRequest(makeDataSourceRequest(req, token)).then(intermdiateFn(req.device, req.field));
-                                            })
-                                        };
-                                    }();
-
-                                    if ((typeof _ret === "undefined" ? "undefined" : _typeof(_ret)) === "object") return _ret.v;
+                                    var _req = reqs.shift();
+                                    return _this.backendSrv.datasourceRequest(makeDataSourceRequest(_req)).then(intermdiateFn(_req.device, _req.field));
                                 }
                             };
                         };
-
-                        var req = reqs.shift();
-                        return boundToken(req.project_title, function (token) {
-                            console.log("INITIAL RESP CALL");
-                            return _this.backendSrv.datasourceRequest(makeDataSourceRequest(req)).then(intermdiateFn(req.device, req.field));
-                        });
+                        if (reqs.length > 0) {
+                            var _req2 = reqs.shift();
+                            return this.backendSrv.datasourceRequest(makeDataSourceRequest(_req2)).then(intermdiateFn(_req2.device, _req2.field));
+                        }
                     }
                 }, {
                     key: "testDatasource",
@@ -407,10 +394,10 @@ System.register(["lodash", "./constants"], function (_export, _context) {
                     }
                 }, {
                     key: "getProjectToken",
-                    value: function getProjectToken(project_title, innerFn) {
+                    value: function getProjectToken(project, innerFn) {
                         var _this2 = this;
 
-                        var project_id = project_title ? project_title.match(/\(([0-9]+)\)/)[1] : this.project_id;
+                        var project_id = project ? project.match(/\(([0-9]+)\)/)[1] : this.project_id;
                         //get stored token if it exists
                         if (!project_id) {
                             var token = this.project_token || this.localStorage[LAST_PROJECT_TOKEN];
@@ -445,7 +432,7 @@ System.register(["lodash", "./constants"], function (_export, _context) {
                         var _this3 = this;
 
                         var ns = options.namespace;
-                        return this.getProjectToken(options.project_title, function (token) {
+                        return this.getProjectToken(options.project, function (token) {
                             return _this3.backendSrv.datasourceRequest({
                                 url: _this3.url + buildDataUrl(ns, "device_id") + "?limit_by=device_id,1&limit=1000",
                                 data: options, //TODO(scao) - is this needed?
@@ -472,7 +459,7 @@ System.register(["lodash", "./constants"], function (_export, _context) {
                         if (!options.namespace || options.namespace === DEFAULT_SELECT_NS) {
                             return this.q.when([]);
                         }
-                        return this.getProjectToken(options.project_title, function (token) {
+                        return this.getProjectToken(options.project, function (token) {
                             return _this4.backendSrv.datasourceRequest({
                                 url: _this4.url + buildDataUrl(options.namespace) + "?limit=1",
                                 data: options, //TODO(scao) - is this needed?
@@ -492,7 +479,8 @@ System.register(["lodash", "./constants"], function (_export, _context) {
                     value: function namespaceQuery(options) {
                         var _this5 = this;
 
-                        return this.getProjectToken(options.project_title, function (token) {
+                        console.log("NAMESPACE QUERY", options); //REMOVE
+                        return this.getProjectToken(options.project, function (token) {
                             return _this5.backendSrv.datasourceRequest({
                                 url: _this5.url + NAMESPACES_URL,
                                 data: options, //TODO(scao) - is this needed?
@@ -532,7 +520,7 @@ System.register(["lodash", "./constants"], function (_export, _context) {
                         if (!options.namespace || options.namespace === DEFAULT_SELECT_NS) {
                             return this.q.when([]);
                         }
-                        return this.getProjectToken(options.project_title, function (token) {
+                        return this.getProjectToken(options.project, function (token) {
                             return _this6.backendSrv.datasourceRequest({
                                 url: _this6.url + NAMESPACES_URL + buildUrlQueryStr({ namespace_name: options.namespace }),
                                 data: options, //TODO(scao) - is this needed?
@@ -563,7 +551,7 @@ System.register(["lodash", "./constants"], function (_export, _context) {
 
                         // remove placeholder targets
                         options.targets = _.filter(options.targets, function (target) {
-                            return target.field !== DEFAULT_SELECT_FIELD && target.namespace !== DEFAULT_SELECT_NS && target.device_id !== DEFAULT_DEVICE && target.project !== DEFAULT_SELECT_PROJECT;
+                            return target.target !== DEFAULT_SELECT_FIELD && target.namespace !== DEFAULT_SELECT_NS && target.device_id !== DEFAULT_DEVICE && target.project !== DEFAULT_SELECT_PROJECT;
                         });
 
                         var targets = _.map(options.targets, function (target) {
@@ -591,10 +579,9 @@ System.register(["lodash", "./constants"], function (_export, _context) {
                             };
 
                             return {
-                                field: _this7.templateSrv.replace(target.field),
+                                target: _this7.templateSrv.replace(target.target),
                                 namespace: _this7.templateSrv.replace(target.namespace),
                                 device_id: _this7.templateSrv.replace(target.device_id),
-                                project_title: target.project_title,
                                 project: target.project,
                                 group_by: group_by,
                                 limit_by: limit_by,

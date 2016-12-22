@@ -79,7 +79,7 @@ module.exports = function(grunt) {
         options: {
           reporter: 'spec'
         },
-        src: ['dist/test/spec/test-main.js', 'dist/test/spec/*_spec.js']
+        src: ['dist/test/spec/test-main.js'/*, 'dist/test/spec/*_spec.js'*/]
       }
     }
   });

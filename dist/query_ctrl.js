@@ -77,9 +77,8 @@ System.register(["app/plugins/sdk", "./css/query-editor.css!", "./constants"], f
 
                     _this.scope = $scope;
                     _this.uiSegmentSrv = uiSegmentSrv;
-                    _this.target.field = _this.target.field || DEFAULT_SELECT_FIELD;
-                    _this.target.project_title = _this.target.project || DEFAULT_SELECT_PROJECT;
-                    _this.target.project = _this.target.project;
+                    _this.target.target = _this.target.target || DEFAULT_SELECT_FIELD;
+                    _this.target.project = _this.target.project || DEFAULT_SELECT_PROJECT;
                     _this.target.namespace = _this.target.namespace || DEFAULT_SELECT_NS;
                     _this.target.device_id = _this.target.device_id || DEFAULT_DEVICE;
                     _this.target.group_by_field = _this.target.group_by_field || NONE;
@@ -195,7 +194,6 @@ System.register(["app/plugins/sdk", "./css/query-editor.css!", "./constants"], f
                 }, {
                     key: "getNamespaces",
                     value: function getNamespaces() {
-                        console.log(this.target);
                         return this.datasource.namespaceQuery(this.target).then(this.uiSegmentSrv.transformToSegments(false));
                     }
                 }, {
@@ -221,8 +219,31 @@ System.register(["app/plugins/sdk", "./css/query-editor.css!", "./constants"], f
                 }, {
                     key: "onChangeInternal",
                     value: function onChangeInternal() {
-                        console.log("INTERNAL CHANGE"); //REMOVE
-                        this.panelCtrl.refresh(); // Asks the panel to refresh data.
+                        this.refresh(); // Asks the panel to refresh data.
+                    }
+                }, {
+                    key: "onChangeNamespace",
+                    value: function onChangeNamespace() {
+                        this.refresh();
+                    }
+                }, {
+                    key: "onChangeField",
+                    value: function onChangeField() {
+                        console.log(this.target); //REMOVE
+                        this.refresh();
+                    }
+                }, {
+                    key: "onChangeProject",
+                    value: function onChangeProject() {
+                        // reset namespace value in selector
+                        this.datasource.namespaceQuery(this.target).then(function () {
+                            return function (results) {
+                                if (results.length > 0) {
+                                    this.target.namespace = results[0].text;
+                                }
+                            };
+                        });
+                        this.refresh();
                     }
                 }]);
 

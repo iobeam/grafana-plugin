@@ -163,7 +163,6 @@ export class iobeamDatasource {
             if (result.status === 200 && result.data.result.length === 0) {
                 continue;
             }
-
             const {fields, values} = result.data.result[0];
             const fieldIdx = findFieldIdx(fields, field);
             const f = fields[fieldIdx];
@@ -209,7 +208,6 @@ export class iobeamDatasource {
     query(options) {
         const query = this.buildQueryParameters(options);
         query.targets = query.targets.filter(t => !t.hide);
-        console.log("QUERY TARGETS", query.targets.length);//REMOVE
         if (query.targets.length <= 0) {
             return this.q.when({data: []});
         } else if (query.targets.length === 1 && !query.targets[0].target) {
@@ -253,18 +251,21 @@ export class iobeamDatasource {
             Object.assign(queryParams, buildGroupByParam(t, (t.interval || query.interval)));
             Object.assign(queryParams, buildLimitByParam(t));
 
-            req.url = this.url + buildDataUrl(t.namespace, t.field) + buildUrlQueryStr(queryParams);
-            req.project_title = t.project_title;
-            reqs.push(req);
+            req.url = this.url + buildDataUrl(t.namespace, t.target) + buildUrlQueryStr(queryParams);
+            req.project = t.project;
+            this.getProjectToken(t.project, (token) => {
+                req.token = token;
+                if (token) {
+                    reqs.push(req);
+                }
+            });
         }
 
         // Helper function to create the headers for each request.
-        const boundToken = this.getProjectToken.bind(this);
-
-        const makeDataSourceRequest = (req, token) => {
+        const makeDataSourceRequest = (req) => {
             return {
                 method: "GET",
-                headers: buildAuthHeader(token),
+                headers: buildAuthHeader(req.token),
                 url: req.url
             };
         };
@@ -276,30 +277,22 @@ export class iobeamDatasource {
         // it launches the next one with a similar callback. If there are no
         // more requests, it parses all the collected responses.
         const intermdiateFn = (device, field) => {
-            console.log("Adding Query");
             return (result) => {
                 resps.push({device: device, field: field, result: result});
                 if (reqs.length === 0) {
-                    console.log("RESPS", resps);//REMOVE
                     return this.parseQueryResults(resps);
                 } else {
                     const req = reqs.shift();
-                    console.log("RESPS DECREASE", resps);//REMOVE
-                    return boundToken(req.project_title, (token) => {
-                        return this.backendSrv.datasourceRequest(makeDataSourceRequest(req, token))
-                        .then(intermdiateFn(req.device, req.field));
-                    });
+                    return this.backendSrv.datasourceRequest(makeDataSourceRequest(req))
+                    .then(intermdiateFn(req.device, req.field));
                 }
             };
         };
-
-        const req = reqs.shift();
-        return boundToken(req.project_title, (token) => {
-            console.log("INITIAL RESP CALL");
+        if (reqs.length > 0) {
+            const req = reqs.shift();
             return this.backendSrv.datasourceRequest(makeDataSourceRequest(req))
-                .then(intermdiateFn(req.device, req.field));
-        });
-
+            .then(intermdiateFn(req.device, req.field));
+        }
     }
 
     // Required
@@ -321,8 +314,8 @@ export class iobeamDatasource {
     }
 
     // Used to get project token before running specific query
-    getProjectToken(project_title, innerFn) {
-        const project_id = project_title ? project_title.match(/\(([0-9]+)\)/)[1] : this.project_id;
+    getProjectToken(project, innerFn) {
+        const project_id = project ? project.match(/\(([0-9]+)\)/)[1] : this.project_id;
         //get stored token if it exists
         if (!project_id) {
             const token = this.project_token || this.localStorage[LAST_PROJECT_TOKEN];
@@ -355,7 +348,7 @@ export class iobeamDatasource {
     /** Get the list of devices for a namespace **/
     deviceQuery(options) {
         const ns = options.namespace;
-        return this.getProjectToken(options.project_title, (token) => {
+        return this.getProjectToken(options.project, (token) => {
             return this.backendSrv.datasourceRequest({
                 url: this.url + buildDataUrl(ns, "device_id") + "?limit_by=device_id,1&limit=1000",
                 data: options, //TODO(scao) - is this needed?
@@ -379,7 +372,7 @@ export class iobeamDatasource {
         if (!options.namespace || options.namespace === DEFAULT_SELECT_NS) {
             return this.q.when([]);
         }
-        return this.getProjectToken(options.project_title, (token) => {
+        return this.getProjectToken(options.project, (token) => {
             return this.backendSrv.datasourceRequest({
                 url: this.url + buildDataUrl(options.namespace)+ "?limit=1",
                 data: options, //TODO(scao) - is this needed?
@@ -396,7 +389,7 @@ export class iobeamDatasource {
 
     /** Get the namespaces for a project **/
     namespaceQuery(options) {
-        return this.getProjectToken(options.project_title, (token) => {
+        return this.getProjectToken(options.project, (token) => {
             return this.backendSrv.datasourceRequest({
                 url: this.url + NAMESPACES_URL,
                 data: options, //TODO(scao) - is this needed?
@@ -431,7 +424,7 @@ export class iobeamDatasource {
         if (!options.namespace || options.namespace === DEFAULT_SELECT_NS) {
             return this.q.when([]);
         }
-        return this.getProjectToken(options.project_title, (token) => {
+        return this.getProjectToken(options.project, (token) => {
             return this.backendSrv.datasourceRequest({
                 url: this.url + NAMESPACES_URL + buildUrlQueryStr({namespace_name: options.namespace}),
                 data: options, //TODO(scao) - is this needed?
@@ -458,7 +451,7 @@ export class iobeamDatasource {
     buildQueryParameters(options) {
         // remove placeholder targets
         options.targets = _.filter(options.targets, target => {
-            return target.field !== DEFAULT_SELECT_FIELD
+            return target.target !== DEFAULT_SELECT_FIELD
                 && target.namespace !== DEFAULT_SELECT_NS
                 && target.device_id !== DEFAULT_DEVICE
                 && target.project !== DEFAULT_SELECT_PROJECT;
@@ -489,10 +482,9 @@ export class iobeamDatasource {
             };
 
             return {
-                field: this.templateSrv.replace(target.field),
+                target: this.templateSrv.replace(target.target),
                 namespace: this.templateSrv.replace(target.namespace),
                 device_id: this.templateSrv.replace(target.device_id),
-                project_title: target.project_title,
                 project: target.project,
                 group_by: group_by,
                 limit_by: limit_by,
