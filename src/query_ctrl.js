@@ -1,7 +1,9 @@
 import {QueryCtrl} from "app/plugins/sdk";
 import "./css/query-editor.css!";
+import _ from "lodash";
 import {
     ALL_OPERATORS,
+    ALL_DEVICES,
     DEFAULT_DEVICE,
     DEFAULT_GROUP_BY_OP,
     DEFAULT_SELECT_FIELD,
@@ -17,10 +19,9 @@ export class iobeamDatasourceQueryCtrl extends QueryCtrl {
         super($scope, $injector);
 
         this.scope = $scope;
+        this.target = this.target;
         this.uiSegmentSrv = uiSegmentSrv;
         this.target.target = this.target.target || DEFAULT_SELECT_FIELD;
-        this.target.project = this.target.project || DEFAULT_SELECT_PROJECT;
-        this.target.namespace = this.target.namespace || DEFAULT_SELECT_NS;
         this.target.device_id = this.target.device_id || DEFAULT_DEVICE;
         this.target.group_by_field = this.target.group_by_field || NONE;
         this.target.group_by_operator = this.target.group_by_operator || DEFAULT_GROUP_BY_OP;
@@ -40,7 +41,10 @@ export class iobeamDatasourceQueryCtrl extends QueryCtrl {
                 }
             }
         }
-
+        this.projectSegment = uiSegmentSrv.getSegmentForValue(this.target.project, DEFAULT_SELECT_PROJECT);
+        this.namespaceSegment = uiSegmentSrv.getSegmentForValue(this.target.namespace, DEFAULT_SELECT_NS);
+        this.fieldSegment = uiSegmentSrv.getSegmentForValue(this.target.target, DEFAULT_SELECT_FIELD);
+        this.deviceSegment = uiSegmentSrv.getSegmentForValue(this.target.device_id, DEFAULT_DEVICE);
     }
 
     /** Add a new where row to the UI, pushing down the plus button **/
@@ -120,7 +124,7 @@ export class iobeamDatasourceQueryCtrl extends QueryCtrl {
     }
 
     getProjects() {
-        return this.datasource.projectQuery(this.target)
+        return this.datasource.projectQuery()
             .then((results) => {
                 return [{text: NONE, value: NONE}].concat(results);
             })
@@ -128,6 +132,7 @@ export class iobeamDatasourceQueryCtrl extends QueryCtrl {
     }
 
     getNamespaces() {
+        const self = this;
         return this.datasource.namespaceQuery(this.target)
             .then(this.uiSegmentSrv.transformToSegments(false));
     }
@@ -154,24 +159,30 @@ export class iobeamDatasourceQueryCtrl extends QueryCtrl {
         this.refresh(); // Asks the panel to refresh data.
     }
 
+    onChangeDevice() {
+        this.target.device_id = this.deviceSegment.value;
+        this.refresh();
+    }
+
     onChangeNamespace() {
+        this.target.namespace = this.namespaceSegment.value;
         this.refresh();
     }
 
     onChangeField() {
+        this.target.target = this.fieldSegment.value;
         this.refresh();
     }
 
     onChangeProject() {
         // reset namespace value in selector
-        this.datasource.namespaceQuery(this.target)
-            .then(() => {
-                return function(results) {
-                    if (results.length > 0) {
-                        this.target.namespace = results[0].text;
-                    }
-                };
-            });
+        this.namespaceSegment.value = DEFAULT_SELECT_NS;
+        this.namespaceSegment.html = DEFAULT_SELECT_NS;
+        this.fieldSegment.value = DEFAULT_SELECT_FIELD;
+        this.fieldSegment.html = DEFAULT_SELECT_FIELD;
+        this.deviceSegment.value = DEFAULT_DEVICE;
+        this.deviceSegment.html = DEFAULT_DEVICE;
+        this.target.project = this.projectSegment.value;
         this.refresh();
     }
 }

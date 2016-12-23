@@ -1,9 +1,9 @@
 "use strict";
 
-System.register(["app/plugins/sdk", "./css/query-editor.css!", "./constants"], function (_export, _context) {
+System.register(["app/plugins/sdk", "./css/query-editor.css!", "lodash", "./constants"], function (_export, _context) {
     "use strict";
 
-    var QueryCtrl, ALL_OPERATORS, DEFAULT_DEVICE, DEFAULT_GROUP_BY_OP, DEFAULT_SELECT_FIELD, DEFAULT_SELECT_NS, DEFAULT_SELECT_PROJECT, DEFAULT_WHERE, NONE, _createClass, iobeamDatasourceQueryCtrl;
+    var QueryCtrl, _, ALL_OPERATORS, ALL_DEVICES, DEFAULT_DEVICE, DEFAULT_GROUP_BY_OP, DEFAULT_SELECT_FIELD, DEFAULT_SELECT_NS, DEFAULT_SELECT_PROJECT, DEFAULT_WHERE, NONE, _createClass, iobeamDatasourceQueryCtrl;
 
     function _classCallCheck(instance, Constructor) {
         if (!(instance instanceof Constructor)) {
@@ -38,8 +38,11 @@ System.register(["app/plugins/sdk", "./css/query-editor.css!", "./constants"], f
     return {
         setters: [function (_appPluginsSdk) {
             QueryCtrl = _appPluginsSdk.QueryCtrl;
-        }, function (_cssQueryEditorCss) {}, function (_constants) {
+        }, function (_cssQueryEditorCss) {}, function (_lodash) {
+            _ = _lodash.default;
+        }, function (_constants) {
             ALL_OPERATORS = _constants.ALL_OPERATORS;
+            ALL_DEVICES = _constants.ALL_DEVICES;
             DEFAULT_DEVICE = _constants.DEFAULT_DEVICE;
             DEFAULT_GROUP_BY_OP = _constants.DEFAULT_GROUP_BY_OP;
             DEFAULT_SELECT_FIELD = _constants.DEFAULT_SELECT_FIELD;
@@ -76,10 +79,9 @@ System.register(["app/plugins/sdk", "./css/query-editor.css!", "./constants"], f
                     var _this = _possibleConstructorReturn(this, (iobeamDatasourceQueryCtrl.__proto__ || Object.getPrototypeOf(iobeamDatasourceQueryCtrl)).call(this, $scope, $injector));
 
                     _this.scope = $scope;
+                    _this.target = _this.target;
                     _this.uiSegmentSrv = uiSegmentSrv;
                     _this.target.target = _this.target.target || DEFAULT_SELECT_FIELD;
-                    _this.target.project = _this.target.project || DEFAULT_SELECT_PROJECT;
-                    _this.target.namespace = _this.target.namespace || DEFAULT_SELECT_NS;
                     _this.target.device_id = _this.target.device_id || DEFAULT_DEVICE;
                     _this.target.group_by_field = _this.target.group_by_field || NONE;
                     _this.target.group_by_operator = _this.target.group_by_operator || DEFAULT_GROUP_BY_OP;
@@ -99,7 +101,11 @@ System.register(["app/plugins/sdk", "./css/query-editor.css!", "./constants"], f
                             }
                         }
                     }
-
+                    console.log("TARGET", _this.target); //REMOVE
+                    _this.projectSegment = uiSegmentSrv.getSegmentForValue(_this.target.project, DEFAULT_SELECT_PROJECT);
+                    _this.namespaceSegment = uiSegmentSrv.getSegmentForValue(_this.target.namespace, DEFAULT_SELECT_NS);
+                    _this.fieldSegment = uiSegmentSrv.getSegmentForValue(_this.target.target, DEFAULT_SELECT_FIELD);
+                    _this.deviceSegment = uiSegmentSrv.getSegmentForValue(_this.target.device_id, DEFAULT_DEVICE);
                     return _this;
                 }
 
@@ -187,13 +193,14 @@ System.register(["app/plugins/sdk", "./css/query-editor.css!", "./constants"], f
                 }, {
                     key: "getProjects",
                     value: function getProjects() {
-                        return this.datasource.projectQuery(this.target).then(function (results) {
+                        return this.datasource.projectQuery().then(function (results) {
                             return [{ text: NONE, value: NONE }].concat(results);
                         }).then(this.uiSegmentSrv.transformToSegments(false));
                     }
                 }, {
                     key: "getNamespaces",
                     value: function getNamespaces() {
+                        var self = this;
                         return this.datasource.namespaceQuery(this.target).then(this.uiSegmentSrv.transformToSegments(false));
                     }
                 }, {
@@ -222,27 +229,35 @@ System.register(["app/plugins/sdk", "./css/query-editor.css!", "./constants"], f
                         this.refresh(); // Asks the panel to refresh data.
                     }
                 }, {
+                    key: "onChangeDevice",
+                    value: function onChangeDevice() {
+                        this.target.device_id = this.deviceSegment.value;
+                        this.refresh();
+                    }
+                }, {
                     key: "onChangeNamespace",
                     value: function onChangeNamespace() {
+                        this.target.namespace = this.namespaceSegment.value;
                         this.refresh();
                     }
                 }, {
                     key: "onChangeField",
                     value: function onChangeField() {
-                        console.log(this.target); //REMOVE
+                        this.target.target = this.fieldSegment.value;
+                        console.log("NEW FIELD", this.target.target); //REMOVE
                         this.refresh();
                     }
                 }, {
                     key: "onChangeProject",
                     value: function onChangeProject() {
                         // reset namespace value in selector
-                        this.datasource.namespaceQuery(this.target).then(function () {
-                            return function (results) {
-                                if (results.length > 0) {
-                                    this.target.namespace = results[0].text;
-                                }
-                            };
-                        });
+                        this.namespaceSegment.value = DEFAULT_SELECT_NS;
+                        this.namespaceSegment.html = DEFAULT_SELECT_NS;
+                        this.fieldSegment.value = DEFAULT_SELECT_FIELD;
+                        this.fieldSegment.html = DEFAULT_SELECT_FIELD;
+                        this.deviceSegment.value = DEFAULT_DEVICE;
+                        this.deviceSegment.html = DEFAULT_DEVICE;
+                        this.target.project = this.projectSegment.value;
                         this.refresh();
                     }
                 }]);

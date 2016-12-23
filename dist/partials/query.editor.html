@@ -4,20 +4,20 @@
         <div class="gf-form-inline">
             <div class="gf-form">
                 <label class="gf-form-label query-keyword width-7">FROM</label>
-                <metric-segment-model property="ctrl.target.project" get-options="ctrl.getProjects()" on-change="ctrl.onChangeProject()"
-                    css-class="tight-form-item-xxlarge io-segment"></metric-segment-model>
-                <metric-segment-model property="ctrl.target.namespace" get-options="ctrl.getNamespaces()" on-change="ctrl.onChangeNamespace()"
-                    css-class="tight-form-item-xxlarge io-segment"></metric-segment-model>
-                <metric-segment-model property="ctrl.target.target" get-options="ctrl.getOptions()" on-change="ctrl.onChangeField()"
-                    css-class="tight-form-item-xxlarge io-segment"></metric-segment-model>
+                <metric-segment segment="ctrl.projectSegment" get-options="ctrl.getProjects()" on-change="ctrl.onChangeProject()"
+                    css-class="tight-form-item-xxlarge io-segment"></metric-segment>
+                <metric-segment segment="ctrl.namespaceSegment" get-options="ctrl.getNamespaces()" on-change="ctrl.onChangeNamespace()"
+                    css-class="tight-form-item-xxlarge io-segment"></metric-segment>
+                <metric-segment segment="ctrl.fieldSegment" get-options="ctrl.getOptions()" on-change="ctrl.onChangeField()"
+                    css-class="tight-form-item-xxlarge io-segment"></metric-segment>
             </div>
         </div>
 
         <div class="gf-form-inline">
             <div class="gf-form">
                 <label class="gf-form-label query-keyword width-7">DEVICE</label>
-                <metric-segment-model property="ctrl.target.device_id" get-options="ctrl.getDevices()" on-change="ctrl.onChangeInternal()"
-                    css-class="tight-form-item-xxlarge io-segment"></metric-segment-model>
+                <metric-segment segment="ctrl.deviceSegment" get-options="ctrl.getDevices()" on-change="ctrl.onChangeDevice()"
+                    css-class="tight-form-item-xxlarge io-segment"></metric-segment>
             </div>
         </div>
 

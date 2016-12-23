@@ -392,7 +392,6 @@ export class iobeamDatasource {
         return this.getProjectToken(options.project, (token) => {
             return this.backendSrv.datasourceRequest({
                 url: this.url + NAMESPACES_URL,
-                data: options, //TODO(scao) - is this needed?
                 method: "GET",
                 headers: buildAuthHeader(token)
             }).then(result => {
@@ -405,10 +404,9 @@ export class iobeamDatasource {
     }
 
     /** Get the projects for the current user **/
-    projectQuery(options) {
+    projectQuery() {
         return this.backendSrv.datasourceRequest({
             url: this.url + PROJECTS_URL,
-            data: options, //TODO(scao) - is this needed?
             method: "GET",
             headers: buildAuthHeader(this.getUserToken())
         }).then(result => {

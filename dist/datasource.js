@@ -479,11 +479,9 @@ System.register(["lodash", "./constants"], function (_export, _context) {
                     value: function namespaceQuery(options) {
                         var _this5 = this;
 
-                        console.log("NAMESPACE QUERY", options); //REMOVE
                         return this.getProjectToken(options.project, function (token) {
                             return _this5.backendSrv.datasourceRequest({
                                 url: _this5.url + NAMESPACES_URL,
-                                data: options, //TODO(scao) - is this needed?
                                 method: "GET",
                                 headers: buildAuthHeader(token)
                             }).then(function (result) {
@@ -497,10 +495,9 @@ System.register(["lodash", "./constants"], function (_export, _context) {
                     }
                 }, {
                     key: "projectQuery",
-                    value: function projectQuery(options) {
+                    value: function projectQuery() {
                         return this.backendSrv.datasourceRequest({
                             url: this.url + PROJECTS_URL,
-                            data: options, //TODO(scao) - is this needed?
                             method: "GET",
                             headers: buildAuthHeader(this.getUserToken())
                         }).then(function (result) {
