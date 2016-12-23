@@ -195,9 +195,9 @@ export class iobeamDatasource {
     getUserToken() {
         if (this.localStorage[USER_TOKEN_KEY]) {
             return this.localStorage.getItem(USER_TOKEN_KEY);
-        } else if (this.user_token) {
-            this.localStorage.setItem(USER_TOKEN_KEY, this.user_token);
-            return this.user_token;
+        } else if (this.userToken) {
+            this.localStorage.setItem(USER_TOKEN_KEY, this.userToken);
+            return this.userToken;
         } else {
             console.log("User token not set");
             return "";
@@ -292,6 +292,8 @@ export class iobeamDatasource {
             const req = reqs.shift();
             return this.backendSrv.datasourceRequest(makeDataSourceRequest(req))
             .then(intermdiateFn(req.device, req.field));
+        } else {
+            return null;
         }
     }
 

@@ -101,7 +101,6 @@ System.register(["app/plugins/sdk", "./css/query-editor.css!", "lodash", "./cons
                             }
                         }
                     }
-                    console.log("TARGET", _this.target); //REMOVE
                     _this.projectSegment = uiSegmentSrv.getSegmentForValue(_this.target.project, DEFAULT_SELECT_PROJECT);
                     _this.namespaceSegment = uiSegmentSrv.getSegmentForValue(_this.target.namespace, DEFAULT_SELECT_NS);
                     _this.fieldSegment = uiSegmentSrv.getSegmentForValue(_this.target.target, DEFAULT_SELECT_FIELD);
@@ -244,7 +243,6 @@ System.register(["app/plugins/sdk", "./css/query-editor.css!", "lodash", "./cons
                     key: "onChangeField",
                     value: function onChangeField() {
                         this.target.target = this.fieldSegment.value;
-                        console.log("NEW FIELD", this.target.target); //REMOVE
                         this.refresh();
                     }
                 }, {

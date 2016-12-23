@@ -268,9 +268,9 @@ System.register(["lodash", "./constants"], function (_export, _context) {
                     value: function getUserToken() {
                         if (this.localStorage[USER_TOKEN_KEY]) {
                             return this.localStorage.getItem(USER_TOKEN_KEY);
-                        } else if (this.user_token) {
-                            this.localStorage.setItem(USER_TOKEN_KEY, this.user_token);
-                            return this.user_token;
+                        } else if (this.userToken) {
+                            this.localStorage.setItem(USER_TOKEN_KEY, this.userToken);
+                            return this.userToken;
                         } else {
                             console.log("User token not set");
                             return "";
@@ -373,6 +373,8 @@ System.register(["lodash", "./constants"], function (_export, _context) {
                         if (reqs.length > 0) {
                             var _req2 = reqs.shift();
                             return this.backendSrv.datasourceRequest(makeDataSourceRequest(_req2)).then(intermdiateFn(_req2.device, _req2.field));
+                        } else {
+                            return null;
                         }
                     }
                 }, {
