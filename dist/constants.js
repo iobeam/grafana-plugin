@@ -3,7 +3,7 @@
 System.register([], function (_export, _context) {
   "use strict";
 
-  var DEFAULT_SELECT_FIELD, DEFAULT_SELECT_NS, DEFAULT_SELECT_PROJECT, DEFAULT_DEVICE, DEFAULT_WHERE, NONE, DEFAULT_GROUP_BY_OP, ALL_DEVICES, LAST_PROJECT_TOKEN, ALL_OPERATORS, PROXY_ADDRESS, USER_TOKEN_KEY, USER_TOKEN_SUCCESS;
+  var DEFAULT_SELECT_FIELD, DEFAULT_SELECT_NS, DEFAULT_SELECT_PROJECT, DEFAULT_DEVICE, DEFAULT_WHERE, NONE, DEFAULT_GROUP_BY_OP, ALL_DEVICES, LAST_PROJECT_TOKEN, STANDALONE, ALL_OPERATORS, PROXY_ADDRESS, USER_TOKEN_KEY, USER_TOKEN_SUCCESS;
   return {
     setters: [],
     execute: function () {
@@ -42,6 +42,10 @@ System.register([], function (_export, _context) {
       _export("LAST_PROJECT_TOKEN", LAST_PROJECT_TOKEN = "Last project token");
 
       _export("LAST_PROJECT_TOKEN", LAST_PROJECT_TOKEN);
+
+      _export("STANDALONE", STANDALONE = true);
+
+      _export("STANDALONE", STANDALONE);
 
       _export("ALL_OPERATORS", ALL_OPERATORS = ["mean", "max", "min", "count", "sum"]);
 

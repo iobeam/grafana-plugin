@@ -3,7 +3,7 @@
 System.register(["lodash", "./constants"], function (_export, _context) {
     "use strict";
 
-    var _, USER_TOKEN_KEY, PROXY_ADDRESS, USER_TOKEN_SUCCESS, ALL_DEVICES, DEFAULT_DEVICE, DEFAULT_SELECT_FIELD, DEFAULT_SELECT_NS, DEFAULT_SELECT_PROJECT, DEFAULT_WHERE, LAST_PROJECT_TOKEN, NONE, _createClass, DATA_URL, NAMESPACES_URL, PROJECTS_URL, iobeamDatasource;
+    var _, USER_TOKEN_KEY, PROXY_ADDRESS, USER_TOKEN_SUCCESS, ALL_DEVICES, DEFAULT_DEVICE, DEFAULT_SELECT_FIELD, DEFAULT_SELECT_NS, DEFAULT_SELECT_PROJECT, DEFAULT_WHERE, LAST_PROJECT_TOKEN, STANDALONE, NONE, _createClass, DATA_URL, NAMESPACES_URL, PROJECTS_URL, iobeamDatasource;
 
     function _classCallCheck(instance, Constructor) {
         if (!(instance instanceof Constructor)) {
@@ -147,6 +147,7 @@ System.register(["lodash", "./constants"], function (_export, _context) {
             DEFAULT_SELECT_PROJECT = _constants.DEFAULT_SELECT_PROJECT;
             DEFAULT_WHERE = _constants.DEFAULT_WHERE;
             LAST_PROJECT_TOKEN = _constants.LAST_PROJECT_TOKEN;
+            STANDALONE = _constants.STANDALONE;
             NONE = _constants.NONE;
         }],
         execute: function () {
@@ -173,7 +174,7 @@ System.register(["lodash", "./constants"], function (_export, _context) {
             PROJECTS_URL = "/v1/projects/";
 
 
-            if (window) {
+            if (window && !STANDALONE) {
                 window.postMessage("send token", PROXY_ADDRESS);
 
                 window.addEventListener("message", function (e) {

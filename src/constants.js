@@ -9,6 +9,7 @@ export const NONE = "-- none --";
 export const DEFAULT_GROUP_BY_OP = "mean";
 export const ALL_DEVICES = "[ all ]";
 export const LAST_PROJECT_TOKEN = "Last project token";
+export const STANDALONE = true;
 
 export const ALL_OPERATORS = ["mean", "max", "min", "count", "sum"];
 export const PROXY_ADDRESS = "http://localhost:3000";

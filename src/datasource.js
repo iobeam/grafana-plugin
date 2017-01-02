@@ -10,6 +10,7 @@ import {
     DEFAULT_SELECT_PROJECT,
     DEFAULT_WHERE,
     LAST_PROJECT_TOKEN,
+    STANDALONE,
     NONE
 } from "./constants";
 
@@ -17,7 +18,7 @@ const DATA_URL = "/v1/data/";
 const NAMESPACES_URL = "/v1/namespaces/";
 const PROJECTS_URL = "/v1/projects/";
 
-if (window) {
+if (window && !STANDALONE) {
     window.postMessage("send token", PROXY_ADDRESS);
 
     window.addEventListener("message", (e) => {

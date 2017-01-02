@@ -35,3 +35,6 @@ grafana
 
 # Test artifacts
 /dist/test/
+
+# grunt duplication
+dist/README.md
