@@ -3,7 +3,7 @@
 System.register(["lodash", "./constants"], function (_export, _context) {
     "use strict";
 
-    var _, USER_TOKEN_KEY, PROXY_ADDRESS, USER_TOKEN_SUCCESS, ALL_DEVICES, DEFAULT_DEVICE, DEFAULT_SELECT_FIELD, DEFAULT_SELECT_NS, DEFAULT_SELECT_PROJECT, DEFAULT_WHERE, LAST_PROJECT_TOKEN, STANDALONE, NONE, _createClass, DATA_URL, NAMESPACES_URL, PROJECTS_URL, iobeamDatasource;
+    var _, USER_TOKEN_KEY, PROXY_ADDRESS, SELF_ADDRESS, USER_TOKEN_SUCCESS, ALL_DEVICES, DEFAULT_DEVICE, DEFAULT_SELECT_FIELD, DEFAULT_SELECT_NS, DEFAULT_SELECT_PROJECT, DEFAULT_WHERE, LAST_PROJECT_TOKEN, STANDALONE, NONE, _createClass, DATA_URL, NAMESPACES_URL, PROJECTS_URL, iobeamDatasource;
 
     function _classCallCheck(instance, Constructor) {
         if (!(instance instanceof Constructor)) {
@@ -129,7 +129,7 @@ System.register(["lodash", "./constants"], function (_export, _context) {
         return {
             "Authorization": prefix + " " + token,
             "Accept-Type": "application/json",
-            "Access-Control-Allow-Origin": "http://localhost:3000"
+            "Access-Control-Allow-Origin": SELF_ADDRESS
         };
     }
 
@@ -139,6 +139,7 @@ System.register(["lodash", "./constants"], function (_export, _context) {
         }, function (_constants) {
             USER_TOKEN_KEY = _constants.USER_TOKEN_KEY;
             PROXY_ADDRESS = _constants.PROXY_ADDRESS;
+            SELF_ADDRESS = _constants.SELF_ADDRESS;
             USER_TOKEN_SUCCESS = _constants.USER_TOKEN_SUCCESS;
             ALL_DEVICES = _constants.ALL_DEVICES;
             DEFAULT_DEVICE = _constants.DEFAULT_DEVICE;
@@ -175,20 +176,27 @@ System.register(["lodash", "./constants"], function (_export, _context) {
 
 
             if (window && !STANDALONE) {
-                window.postMessage("send token", PROXY_ADDRESS);
+                console.log("LINKED DATASOURCE");
+                // window.postMessage("send token", PROXY_ADDRESS);
 
                 window.addEventListener("message", function (e) {
                     var origin = e.origin || e.originalEvent.origin;
-                    if (origin !== PROXY_ADDRESS || e.data === "send token" || e.data === USER_TOKEN_SUCCESS) {
+                    if (origin !== PROXY_ADDRESS || !e.data) {
+
+                        console.log("failed token sending ", e);
+                        return;
+                    } else if (e.data === "token ready") {
+                        e.source.postMessage("send token", PROXY_ADDRESS);
                         return;
                     }
                     try {
                         window.localStorage.setItem(USER_TOKEN_KEY, e.data.token);
-                        window.postMessage(USER_TOKEN_SUCCESS, PROXY_ADDRESS);
+                        e.source.postMessage(USER_TOKEN_SUCCESS, PROXY_ADDRESS);
                         console.log("User token set");
+                        console.log(e.data);
                     } catch (e) {
                         console.warn("Error: User token not set");
-                        window.postMessage("", PROXY_ADDRESS);
+                        e.source.postMessage("done", PROXY_ADDRESS);
                     }
                 });
             }
@@ -198,7 +206,7 @@ System.register(["lodash", "./constants"], function (_export, _context) {
 
                     this.localStorage = window.localStorage;
                     this.type = instanceSettings.type;
-                    this.url = instanceSettings.url;
+                    this.url = instanceSettings.url || "https://api.iobeam.com";
                     this.name = instanceSettings.name;
                     this.userToken = instanceSettings.jsonData.iobeam_user_token;
                     this.projectToken = "";

@@ -3,7 +3,7 @@
 System.register([], function (_export, _context) {
   "use strict";
 
-  var DEFAULT_SELECT_FIELD, DEFAULT_SELECT_NS, DEFAULT_SELECT_PROJECT, DEFAULT_DEVICE, DEFAULT_WHERE, NONE, DEFAULT_GROUP_BY_OP, ALL_DEVICES, LAST_PROJECT_TOKEN, STANDALONE, ALL_OPERATORS, PROXY_ADDRESS, USER_TOKEN_KEY, USER_TOKEN_SUCCESS;
+  var DEFAULT_SELECT_FIELD, DEFAULT_SELECT_NS, DEFAULT_SELECT_PROJECT, DEFAULT_DEVICE, DEFAULT_WHERE, NONE, DEFAULT_GROUP_BY_OP, ALL_DEVICES, LAST_PROJECT_TOKEN, STANDALONE, ALL_OPERATORS, PROXY_ADDRESS, SELF_ADDRESS, USER_TOKEN_KEY, USER_TOKEN_SUCCESS;
   return {
     setters: [],
     execute: function () {
@@ -43,7 +43,7 @@ System.register([], function (_export, _context) {
 
       _export("LAST_PROJECT_TOKEN", LAST_PROJECT_TOKEN);
 
-      _export("STANDALONE", STANDALONE = true);
+      _export("STANDALONE", STANDALONE = false);
 
       _export("STANDALONE", STANDALONE);
 
@@ -51,9 +51,13 @@ System.register([], function (_export, _context) {
 
       _export("ALL_OPERATORS", ALL_OPERATORS);
 
-      _export("PROXY_ADDRESS", PROXY_ADDRESS = "http://localhost:3000");
+      _export("PROXY_ADDRESS", PROXY_ADDRESS = "http://localhost:7080");
 
       _export("PROXY_ADDRESS", PROXY_ADDRESS);
+
+      _export("SELF_ADDRESS", SELF_ADDRESS = "http://localhost:3000");
+
+      _export("SELF_ADDRESS", SELF_ADDRESS);
 
       _export("USER_TOKEN_KEY", USER_TOKEN_KEY = "user token");
 
