@@ -3,7 +3,7 @@
 System.register(["lodash", "./constants"], function (_export, _context) {
     "use strict";
 
-    var _, USER_TOKEN_KEY, PROXY_ADDRESS, SELF_ADDRESS, USER_TOKEN_SUCCESS, ALL_DEVICES, DEFAULT_DEVICE, DEFAULT_SELECT_FIELD, DEFAULT_SELECT_NS, DEFAULT_SELECT_PROJECT, DEFAULT_WHERE, LAST_PROJECT_TOKEN, STANDALONE, NONE, _createClass, DATA_URL, NAMESPACES_URL, PROJECTS_URL, iobeamDatasource;
+    var _, USER_TOKEN_KEY, SELF_ADDRESS, ALL_DEVICES, DEFAULT_DEVICE, DEFAULT_SELECT_FIELD, DEFAULT_SELECT_NS, DEFAULT_SELECT_PROJECT, LAST_PROJECT_TOKEN, NONE, _createClass, DATA_URL, NAMESPACES_URL, PROJECTS_URL, iobeamDatasource;
 
     function _classCallCheck(instance, Constructor) {
         if (!(instance instanceof Constructor)) {
@@ -138,17 +138,13 @@ System.register(["lodash", "./constants"], function (_export, _context) {
             _ = _lodash.default;
         }, function (_constants) {
             USER_TOKEN_KEY = _constants.USER_TOKEN_KEY;
-            PROXY_ADDRESS = _constants.PROXY_ADDRESS;
             SELF_ADDRESS = _constants.SELF_ADDRESS;
-            USER_TOKEN_SUCCESS = _constants.USER_TOKEN_SUCCESS;
             ALL_DEVICES = _constants.ALL_DEVICES;
             DEFAULT_DEVICE = _constants.DEFAULT_DEVICE;
             DEFAULT_SELECT_FIELD = _constants.DEFAULT_SELECT_FIELD;
             DEFAULT_SELECT_NS = _constants.DEFAULT_SELECT_NS;
             DEFAULT_SELECT_PROJECT = _constants.DEFAULT_SELECT_PROJECT;
-            DEFAULT_WHERE = _constants.DEFAULT_WHERE;
             LAST_PROJECT_TOKEN = _constants.LAST_PROJECT_TOKEN;
-            STANDALONE = _constants.STANDALONE;
             NONE = _constants.NONE;
         }],
         execute: function () {
@@ -174,39 +170,13 @@ System.register(["lodash", "./constants"], function (_export, _context) {
             NAMESPACES_URL = "/v1/namespaces/";
             PROJECTS_URL = "/v1/projects/";
 
-
-            if (window && !STANDALONE) {
-                console.log("LINKED DATASOURCE");
-                // window.postMessage("send token", PROXY_ADDRESS);
-
-                window.addEventListener("message", function (e) {
-                    var origin = e.origin || e.originalEvent.origin;
-                    if (origin !== PROXY_ADDRESS || !e.data) {
-
-                        console.log("failed token sending ", e);
-                        return;
-                    } else if (e.data === "token ready") {
-                        e.source.postMessage("send token", PROXY_ADDRESS);
-                        return;
-                    }
-                    try {
-                        window.localStorage.setItem(USER_TOKEN_KEY, e.data.token);
-                        e.source.postMessage(USER_TOKEN_SUCCESS, PROXY_ADDRESS);
-                        console.log("User token set");
-                        console.log(e.data);
-                    } catch (e) {
-                        console.warn("Error: User token not set");
-                        e.source.postMessage("done", PROXY_ADDRESS);
-                    }
-                });
-            }
             _export("iobeamDatasource", iobeamDatasource = function () {
                 function iobeamDatasource(instanceSettings, $q, backendSrv, templateSrv) {
                     _classCallCheck(this, iobeamDatasource);
 
                     this.localStorage = window.localStorage;
                     this.type = instanceSettings.type;
-                    this.url = instanceSettings.url || "https://api.iobeam.com";
+                    this.url = instanceSettings.url;
                     this.name = instanceSettings.name;
                     this.userToken = instanceSettings.jsonData.iobeam_user_token;
                     this.projectToken = "";
@@ -394,11 +364,11 @@ System.register(["lodash", "./constants"], function (_export, _context) {
                             method: "GET",
                             headers: buildAuthHeader()
                         }).then(function (response) {
-                            if (response.status === 200 /*&& /https/.test(this.url) TODO(fix when PR comes through)*/) {
-                                    return { status: "success", message: "Data source is working.  Make sure you use 'https'", title: "Success" };
-                                    // } else if (response.status === 200) {
-                                    //     return {status: "failure", message: "Please use 'https'", title: "Wrong scheme"};
-                                } else {
+                            if (response.status === 200) {
+                                return { status: "success", message: "Data source is working.  Make sure you use 'https'", title: "Success" };
+                                // } else if (response.status === 200) {
+                                //     return {status: "failure", message: "Please use 'https'", title: "Wrong scheme"};
+                            } else {
                                 return "";
                             }
                         });
@@ -413,7 +383,7 @@ System.register(["lodash", "./constants"], function (_export, _context) {
                         if (!project_id) {
                             var token = this.project_token || this.localStorage[LAST_PROJECT_TOKEN];
                             if (token) {
-                                return innerFn(this.project_token || this.localStorage[LAST_PROJECT_TOKEN]);
+                                return innerFn(token);
                             }
                             return null;
                         } else if (this.localStorage[project_id]) {

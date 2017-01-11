@@ -1,51 +1,19 @@
 import _ from "lodash";
 import {
     USER_TOKEN_KEY,
-    PROXY_ADDRESS,
     SELF_ADDRESS,
-    USER_TOKEN_SUCCESS,
     ALL_DEVICES,
     DEFAULT_DEVICE,
     DEFAULT_SELECT_FIELD,
     DEFAULT_SELECT_NS,
     DEFAULT_SELECT_PROJECT,
-    DEFAULT_WHERE,
     LAST_PROJECT_TOKEN,
-    STANDALONE,
     NONE
 } from "./constants";
 
 const DATA_URL = "/v1/data/";
 const NAMESPACES_URL = "/v1/namespaces/";
 const PROJECTS_URL = "/v1/projects/";
-
-if (window && !STANDALONE) {
-    console.log("LINKED DATASOURCE");
-    // window.postMessage("send token", PROXY_ADDRESS);
-
-    window.addEventListener("message", (e) => {
-        const origin = e.origin || e.originalEvent.origin;
-        if (origin !== PROXY_ADDRESS
-            || !e.data) {
-
-            console.log("failed token sending ", e);
-            return;
-        } else if (e.data === "token ready") {
-            e.source.postMessage("send token", PROXY_ADDRESS);
-            return;
-        }
-        try {
-            window.localStorage.setItem(USER_TOKEN_KEY, e.data.token);
-            e.source.postMessage(USER_TOKEN_SUCCESS, PROXY_ADDRESS);
-            console.log("User token set");
-            console.log(e.data);
-        }
-        catch (e) {
-            console.warn("Error: User token not set");
-            e.source.postMessage("done", PROXY_ADDRESS);
-        }
-    });
-}
 
 /** Build string representing iobeam /data endpoint **/
 function buildDataUrl(ns, field = "all") {
@@ -146,7 +114,7 @@ export class iobeamDatasource {
     constructor(instanceSettings, $q, backendSrv, templateSrv) {
         this.localStorage = window.localStorage;
         this.type = instanceSettings.type;
-        this.url = instanceSettings.url || "https://api.iobeam.com";
+        this.url = instanceSettings.url;
         this.name = instanceSettings.name;
         this.userToken = instanceSettings.jsonData.iobeam_user_token;
         this.projectToken = "";
@@ -313,7 +281,7 @@ export class iobeamDatasource {
             method: "GET",
             headers: buildAuthHeader()
         }).then(response => {
-            if (response.status === 200 /*&& /https/.test(this.url) TODO(fix when PR comes through)*/) {
+            if (response.status === 200) {
                 return { status: "success", message: "Data source is working.  Make sure you use 'https'", title: "Success" };
             // } else if (response.status === 200) {
             //     return {status: "failure", message: "Please use 'https'", title: "Wrong scheme"};
@@ -330,7 +298,7 @@ export class iobeamDatasource {
         if (!project_id) {
             const token = this.project_token || this.localStorage[LAST_PROJECT_TOKEN];
             if (token) {
-                return innerFn(this.project_token || this.localStorage[LAST_PROJECT_TOKEN]);
+                return innerFn(token);
             }
             return null;
         } else if (this.localStorage[project_id]) {

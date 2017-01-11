@@ -1,9 +1,9 @@
 "use strict";
 
-System.register(["./datasource", "./query_ctrl", "./constants"], function (_export, _context) {
+System.register(["./datasource", "./query_ctrl"], function (_export, _context) {
   "use strict";
 
-  var iobeamDatasource, iobeamDatasourceQueryCtrl, PROXY_ADDRESS, USER_TOKEN_KEY, USER_TOKEN_SUCCESS, GenericConfigCtrl, GenericQueryOptionsCtrl, GenericAnnotationsQueryCtrl;
+  var iobeamDatasource, iobeamDatasourceQueryCtrl, GenericConfigCtrl, GenericQueryOptionsCtrl, GenericAnnotationsQueryCtrl;
 
   function _classCallCheck(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
@@ -16,10 +16,6 @@ System.register(["./datasource", "./query_ctrl", "./constants"], function (_expo
       iobeamDatasource = _datasource.iobeamDatasource;
     }, function (_query_ctrl) {
       iobeamDatasourceQueryCtrl = _query_ctrl.iobeamDatasourceQueryCtrl;
-    }, function (_constants) {
-      PROXY_ADDRESS = _constants.PROXY_ADDRESS;
-      USER_TOKEN_KEY = _constants.USER_TOKEN_KEY;
-      USER_TOKEN_SUCCESS = _constants.USER_TOKEN_SUCCESS;
     }],
     execute: function () {
       _export("ConfigCtrl", GenericConfigCtrl = function GenericConfigCtrl() {
