@@ -1,6 +1,6 @@
 {
   "name": "iobeam",
-  "id": "grafana-iobeam",
+  "id": "iobeam",
   "type": "datasource",
 
   "staticRoot": ".",

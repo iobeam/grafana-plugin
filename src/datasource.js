@@ -2,6 +2,7 @@ import _ from "lodash";
 import {
     USER_TOKEN_KEY,
     PROXY_ADDRESS,
+    SELF_ADDRESS,
     USER_TOKEN_SUCCESS,
     ALL_DEVICES,
     DEFAULT_DEVICE,
@@ -19,23 +20,29 @@ const NAMESPACES_URL = "/v1/namespaces/";
 const PROJECTS_URL = "/v1/projects/";
 
 if (window && !STANDALONE) {
-    window.postMessage("send token", PROXY_ADDRESS);
+    console.log("LINKED DATASOURCE");
+    // window.postMessage("send token", PROXY_ADDRESS);
 
     window.addEventListener("message", (e) => {
         const origin = e.origin || e.originalEvent.origin;
         if (origin !== PROXY_ADDRESS
-            || e.data === "send token"
-            || e.data === USER_TOKEN_SUCCESS) {
+            || !e.data) {
+
+            console.log("failed token sending ", e);
+            return;
+        } else if (e.data === "token ready") {
+            e.source.postMessage("send token", PROXY_ADDRESS);
             return;
         }
         try {
             window.localStorage.setItem(USER_TOKEN_KEY, e.data.token);
-            window.postMessage(USER_TOKEN_SUCCESS, PROXY_ADDRESS);
+            e.source.postMessage(USER_TOKEN_SUCCESS, PROXY_ADDRESS);
             console.log("User token set");
+            console.log(e.data);
         }
         catch (e) {
             console.warn("Error: User token not set");
-            window.postMessage("", PROXY_ADDRESS);
+            e.source.postMessage("done", PROXY_ADDRESS);
         }
     });
 }
@@ -130,7 +137,7 @@ function buildAuthHeader(token, prefix = "Bearer") {
     return {
         "Authorization": prefix + " " + token,
         "Accept-Type": "application/json",
-        "Access-Control-Allow-Origin": "http://localhost:3000"
+        "Access-Control-Allow-Origin": SELF_ADDRESS
     };
 }
 
@@ -139,7 +146,7 @@ export class iobeamDatasource {
     constructor(instanceSettings, $q, backendSrv, templateSrv) {
         this.localStorage = window.localStorage;
         this.type = instanceSettings.type;
-        this.url = instanceSettings.url;
+        this.url = instanceSettings.url || "https://api.iobeam.com";
         this.name = instanceSettings.name;
         this.userToken = instanceSettings.jsonData.iobeam_user_token;
         this.projectToken = "";

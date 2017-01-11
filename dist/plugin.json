@@ -1,6 +1,6 @@
 {
   "name": "iobeam",
-  "id": "grafana-iobeam",
+  "id": "iobeam",
   "type": "datasource",
 
   "staticRoot": ".",
@@ -19,11 +19,11 @@
       "large": "src/img/iobeam_io_icon_1.svg"
     },
     "links": [
-      {"name": "GitHub", "url": "https://github.com/grafana/simple-json-datasource"},
-      {"name": "MIT License", "url": "https://github.com/grafana/simple-json-datasource/blob/master/LICENSE"}
+      {"name": "GitHub", "url": "https://github.com/iobeam/grafana-plugin"},
+      {"name": "MIT License", "url": "https://github.com/iobeam/grafana-plugin/blob/master/LICENSE"}
     ],
     "version": "1.0.0",
-    "updated": "2016-09-20"
+    "updated": "2017-01-02"
   },
 
   "dependencies": {
