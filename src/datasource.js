@@ -276,10 +276,12 @@ export class iobeamDatasource {
     // Required
     // Used for testing datasource in datasource configuration page
     testDatasource() {
+        this.localStorage.setItem(USER_TOKEN_KEY, this.userToken);
+
         return this.backendSrv.datasourceRequest({
-            url: this.url + "/v1/ping",
+            url: this.url + "/v1/projects",
             method: "GET",
-            headers: buildAuthHeader()
+            headers: buildAuthHeader(this.userToken)
         }).then(response => {
             if (response.status === 200) {
                 return { status: "success", message: "Data source is working.  Make sure you use 'https'", title: "Success" };
