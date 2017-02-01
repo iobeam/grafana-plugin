@@ -41,7 +41,7 @@
                 <metric-segment-model property="ctrl.target.limit_by_field" get-options="ctrl.getLimitByOptions()" on-change="ctrl.onChangeInternal()"
                     css-class="tight-form-item-medium io-segment"></metric-segment-model>
                 <label class="gf-form-label query-keyword width-7">LIMIT #</label>
-                <input type="text" ng-value="ctrl.target.limit_by_count" placeholder="1" class="io-segment io-limit-clause" ng-blur="ctrl.limitCount($event)"></input>
+                <input type="text" ng-value="ctrl.target.limit_by_count" placeholder="1" class="max-width-5 gf-form-input" ng-blur="ctrl.limitCount($event)"></input>
 
             </div>
         </div>
@@ -56,7 +56,7 @@
             <div class="gf-form io-where-row">
                 <label ng-if="$index > 0 && row.length > 1" class="gf-form-label query-keyword">AND</label>
                 <ng-repeat ng-repeat="segment in row" class="io-where-row">
-                    <input ng-if="segment.type === 'clause'" type="text" ng-value="segment.value" placeholder="Enter where clause" class="io-segment io-where-clause" ng-blur="ctrl.wheresEntered($event, $parent.$parent.$index, $index)"></input>
+                    <input ng-if="segment.type === 'clause'" type="text" ng-value="segment.value" placeholder="Enter where clause" class="gf-form-input width-18" ng-blur="ctrl.wheresEntered($event, $parent.$parent.$index, $index)"></input>
                     <metric-segment ng-if="segment.type !== 'clause'" segment="segment" get-options="ctrl.wheresClicked(segment, $parent.$parent.$index, $index)" on-change="ctrl.wheresUpdated(segment, $parent.$parent.$index, $index)"
                         css-class="tight-form-item-xxlarge io-segment"></metric-segment>
                 </ng-repeat>
