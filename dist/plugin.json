@@ -1,6 +1,6 @@
 {
   "name": "iobeam",
-  "id": "iobeam",
+  "id": "iobeam-datasource",
   "type": "datasource",
 
   "staticRoot": ".",

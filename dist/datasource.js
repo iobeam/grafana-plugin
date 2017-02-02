@@ -359,10 +359,12 @@ System.register(["lodash", "./constants"], function (_export, _context) {
                 }, {
                     key: "testDatasource",
                     value: function testDatasource() {
+                        this.localStorage.setItem(USER_TOKEN_KEY, this.userToken);
+
                         return this.backendSrv.datasourceRequest({
-                            url: this.url + "/v1/ping",
+                            url: this.url + "/v1/projects",
                             method: "GET",
-                            headers: buildAuthHeader()
+                            headers: buildAuthHeader(this.userToken)
                         }).then(function (response) {
                             if (response.status === 200) {
                                 return { status: "success", message: "Data source is working.  Make sure you use 'https'", title: "Success" };
